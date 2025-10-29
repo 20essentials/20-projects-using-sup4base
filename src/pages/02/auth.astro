@@ -1,0 +1,59 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import '@/pages/02/authPage.css';
+---
+
+<Layout title='Redirigiendo'>
+  <section class='auth-page'>
+    <main class='container'>
+      <p>Autenticando... Por favor espera.</p>
+    </main>
+  </section>
+</Layout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/pages/02/paths';
+
+  (async () => {
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      const errorMsg = encodeURIComponent(
+        sessionError?.message || 'Sesión no encontrada'
+      );
+      window.location.href = `${PATH.LOGIN}?error=${errorMsg}`;
+      return;
+    }
+
+    const { user } = sessionData.session;
+    const { id, email } = user;
+
+    const { data: existingUser, error: userCheckError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (userCheckError && userCheckError.code !== 'PGRST116') {
+      const errorMsg = encodeURIComponent(userCheckError.message);
+       window.location.href = `${PATH.LOGIN}?error=${errorMsg}`;
+      return;
+    }
+
+    if (!existingUser) {
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert([{ id, email }]);
+
+      if (insertError) {
+        const errorMsg = encodeURIComponent(insertError.message);
+         window.location.href = `${PATH.LOGIN}?error=${errorMsg}`;
+        return;
+      }
+    }
+
+     window.location.href = `${PATH.INDEX}`;
+  })();
+</script>

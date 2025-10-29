@@ -1,0 +1,194 @@
+<div class='container-users'>
+  <h3>Usuarios online 👥</h3>
+  <ul id='users-list'></ul>
+  <h3>Actividad</h3>
+  <ul id='messages-list'></ul>
+</div>
+
+<style is:global>
+  body {
+    background-image: url('/assets/background-project-6.svg');
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .container-users {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    margin-top: 2rem;
+    width: min(90%, 420px);
+    color: #000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  h3 {
+    margin: 1rem 0 0.6rem;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    padding-bottom: 0.3rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.4rem 0 1rem;
+  }
+
+  li {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.5rem 0.7rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 42px; 
+    transition:
+      transform 0.2s,
+      background 0.2s;
+  }
+
+  li:hover {
+    transform: translateX(4px);
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  li img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: #fff;
+    display: block;
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $, baseUrl } from '@/utils/functions';
+
+  const channel = supabase.channel('room1');
+  const usersList = $<HTMLUListElement>('#users-list');
+  const messagesList = $<HTMLUListElement>('#messages-list');
+
+  /* function renderUsers() {
+    const state = channel.presenceState();
+    const users = Object.values(state).flat() as {
+      avatar_url: string;
+      name: string;
+      presence_ref: string;
+    }[];
+    usersList.innerHTML = users
+      .map(
+        u => `
+      <li>
+        <img src="${u.avatar_url || baseUrl('/assets/userDefault.png')}" alt="${u.name}">
+        <span>${u.name}</span>
+      </li>
+    `
+      )
+      .join('');
+  }
+ */
+
+  function renderUsers() {
+    const state = channel.presenceState();
+    const users = Object.values(state).flat() as {
+      avatar_url: string;
+      name: string;
+      presence_ref: string;
+    }[];
+
+    users.forEach(u => {
+      const existingLi = Array.from(usersList.children).find(
+        li => li.getAttribute('data-presence-ref') === u.presence_ref
+      ) as HTMLLIElement | undefined;
+
+      if (existingLi) {
+        const span = existingLi.querySelector('span');
+        if (span) span.textContent = u.name;
+      } else {
+        const li = document.createElement('li');
+        li.setAttribute('data-presence-ref', u.presence_ref);
+
+        const img = document.createElement('img');
+        img.src = u.avatar_url || baseUrl('/assets/userDefault.png');
+        img.alt = u.name;
+
+        const span = document.createElement('span');
+        span.textContent = u.name;
+
+        li.appendChild(img);
+        li.appendChild(span);
+        usersList.appendChild(li);
+      }
+    });
+
+    // eliminar <li> de usuarios que ya no están
+    const currentRefs = users.map(u => u.presence_ref);
+    Array.from(usersList.children).forEach(li => {
+      const liRef = li.getAttribute('data-presence-ref');
+      if (!currentRefs.includes(liRef!)) {
+        usersList.removeChild(li);
+      }
+    });
+  }
+
+  function addMessage(text: string) {
+    const li = document.createElement('li');
+    li.textContent = text;
+    messagesList.appendChild(li);
+  }
+
+  channel
+    .on('presence', { event: 'join' }, ({ newPresences }) => {
+      const user = newPresences[0];
+      addMessage(`Entró: ${user.name}`);
+    })
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+      const user = leftPresences[0];
+      addMessage(`Salió: ${user.name}`);
+    })
+    .on('presence', { event: 'sync' }, () => {
+      renderUsers();
+    })
+    .subscribe(async status => {
+      if (status !== 'SUBSCRIBED') return;
+
+      const randomName = `User ${Math.floor(Math.random() * 999)}`;
+      const { data } = await supabase.auth.getUser();
+
+      let full_name = randomName;
+      let avatar_url = baseUrl('/assets/userDefault.png');
+
+      const identities = data?.user?.identities ?? [];
+      const googleProvider = identities.find(i => i.provider === 'google');
+      const identityData =
+        googleProvider?.identity_data ?? identities[0]?.identity_data;
+
+      if (identityData) {
+        full_name = identityData.full_name ?? full_name;
+        avatar_url = identityData.avatar_url ?? avatar_url;
+      }
+
+      await channel.track({
+        name: full_name,
+        avatar_url,
+        joinedAt: new Date().toISOString()
+      });
+    });
+
+  window.addEventListener('beforeunload', () => {
+    channel.untrack();
+    channel.unsubscribe();
+  });
+</script>

@@ -1,0 +1,75 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import '@/pages/02/authPage.css';
+---
+
+<Layout title='Registro - My ToDos'>
+  <section class='auth-page'>
+    <main class='container'>
+      <h1>Crear Cuenta</h1>
+      <form id='register-form'>
+        <input
+          type='email'
+          id='email'
+          placeholder='Correo electrónico'
+          required
+        />
+        <input type='password' id='password' placeholder='Contraseña' required />
+        <button type='submit'>Registrarse</button>
+      </form>
+      <p>¿Ya tienes cuenta? <a href='login.html'>Inicia sesión</a></p>
+      <p id='message' class='message'></p>
+    </main>
+  </section>
+</Layout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $ } from '@/utils/functions';
+  const message = $<HTMLParagraphElement>('#message');
+  const $email = $<HTMLInputElement>('#email');
+  const $password = $<HTMLInputElement>('#password');
+  const registerForm = $<HTMLFormElement>('#register-form');
+
+  registerForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const email = $email.value.trim();
+    const password = $password.value.trim();
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+    if (signUpError) {
+      message.textContent = signUpError.message;
+      return;
+    }
+
+    // Esperamos a obtener la sesión activa
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      message.style.color = 'green';
+      message.textContent = '¡Cuenta creada! Verifica tu correo electrónico.';
+      return;
+    }
+
+    const userId = sessionData.session.user.id;
+
+    // Insertamos el usuario en la tabla "users"
+    const { error: dbError } = await supabase
+      .from('users')
+      .insert([{ id: userId, email }]);
+
+    if (dbError) {
+      console.error('Error al insertar en la tabla users:', dbError.message);
+    }
+
+    message.style.color = 'green';
+    message.textContent = '¡Cuenta creada exitosamente!';
+    registerForm.reset();
+  });
+</script>

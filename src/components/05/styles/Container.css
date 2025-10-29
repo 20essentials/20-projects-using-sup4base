@@ -1,0 +1,22 @@
+.am-container {
+  min-width: 28vmax;
+  width: 30vmax;
+  min-height: max-content;
+  max-height: 90vh;
+  background-color: #fff1;
+  border-radius: 0.8vmax;
+  display: flex;
+  flex-direction: column;
+  padding: 1vmax;
+  gap: 0.7vmax;
+
+  h1 {
+    font-size: 1.7vmax;
+    text-align: center;
+    text-align: center;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}

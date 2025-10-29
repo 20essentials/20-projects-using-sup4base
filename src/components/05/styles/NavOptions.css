@@ -1,0 +1,43 @@
+.container-options {
+  display: flex;
+  border-radius: 0.8vmax;
+  backdrop-filter: blur(0.5vmax);
+  background-color: #0004;
+  padding: 0.4vmax;
+
+  .option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+
+    input {
+      width: 3vmax;
+      height: 1.5vmax;
+      border-width: 0.1vmax;
+      outline: none;
+    }
+
+    &.option-canvas-size {
+      gap: 0.4vmax;
+
+      label {
+        color: #e9e9e9;
+      }
+
+      input {
+        user-select: none;
+      }
+    }
+
+    &.option-download {
+      flex-grow: 0.7;
+      
+      svg {
+        color: white;
+        width: 1.6vmax;
+        height: 1.6vmax;
+      }
+    }
+  }
+}

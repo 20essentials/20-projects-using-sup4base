@@ -1,0 +1,150 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { supabase } from '@/lib/supabase';
+
+export type Task = {
+  id: number;
+  title: string;
+  done: boolean;
+};
+
+const { data } = await supabase
+  .from('tasks')
+  .select('*')
+  .order('id', { ascending: false });
+
+const tasks = (data ?? []) as Task[];
+console.log(tasks);
+---
+
+<Layout title='Simple To Do List'>
+  <section class='am-container'>
+    <h1>✅ Mis Tareas</h1>
+
+    <form id='taskForm'>
+      <input type='text' id='taskInput' placeholder='Nueva tarea...' />
+      <button type='submit'>Agregar</button>
+    </form>
+
+    <form id='taskList'>
+      {
+        tasks?.map(task => (
+          <label
+            class={`am-task  ${task.done ? 'am-done' : ''}`}
+            data-id={task.id}
+          >
+            {task.title}
+            <input
+              class={`am-checkbox-of-a-task`}
+              type='checkbox'
+              checked={task.done}
+            />
+          </label>
+        ))
+      }
+    </form>
+  </section>
+</Layout>
+
+<style>
+  body {
+    background-color: #222;
+  }
+
+  html {
+    color-scheme: dark light;
+  }
+
+  .am-container {
+    font-family: system-ui, sans-serif;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+  form {
+    display: flex;
+    gap: 0.5rem;
+  }
+  input[type='text'] {
+    flex: 1;
+    padding: 0.5rem;
+  }
+  #taskList {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1vmax;
+  }
+
+  li {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+</style>
+
+<style is:global>
+  .am-task.am-done {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $ } from '@/utils/functions';
+
+  const form = $<HTMLFormElement>('#taskForm');
+  const input = $<HTMLInputElement>('#taskInput');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = input.value.trim();
+    if (!title) return;
+
+    const { error } = await supabase.from('tasks').insert([{ title }]);
+    if (error) {
+      console.error('Error al insertar tarea:', error.message);
+      return;
+    }
+
+    const taskList = $('#taskList');
+    const newLabel = document.createElement('label');
+    newLabel.className = 'am-task';
+    newLabel.dataset.id = 'temporal-id';
+    newLabel.innerHTML = `
+      ${title}
+      <input class="am-checkbox-of-a-task" type="checkbox" />
+    `;
+    taskList.prepend(newLabel);
+    input.value = '';
+  });
+
+  document.addEventListener('change', async e => {
+    const target = e.target as HTMLInputElement;
+    if (!target.matches('.am-checkbox-of-a-task')) return;
+
+    const done = target.checked;
+    const labelElement = target.closest('.am-task') as HTMLElement;
+    const idTask = Number(labelElement.getAttribute('data-id') ?? '');
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ done })
+      .eq('id', idTask);
+
+    if (error) {
+      console.error('Error al actualizar tarea:', error.message);
+      target.checked = !done; 
+      return;
+    }
+
+    if (done) {
+      labelElement.classList.add('am-done');
+    } else {
+      labelElement.classList.remove('am-done');
+    }
+  });
+</script>

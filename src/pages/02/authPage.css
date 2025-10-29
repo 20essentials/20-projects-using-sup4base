@@ -1,0 +1,64 @@
+  /* === Estilos para páginas de autenticación (login, register, auth) === */
+  .auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .auth-page form {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .auth-page h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #111827;
+  }
+
+  .auth-page label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .auth-page input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+  }
+
+  .auth-page button {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .auth-page button:hover {
+    background-color: #1d4ed8;
+  }
+
+  .auth-page p {
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  .auth-page hr {
+    margin: 1rem auto;
+  }

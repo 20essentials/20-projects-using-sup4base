@@ -1,0 +1,80 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { PATH } from '@/pages/02/paths';
+import '@/pages/02/authPage.css';
+---
+
+<Layout title='Iniciar Sesión - My ToDos'>
+  <section class='auth-page'>
+    <main class='container'>
+      <h1>Iniciar Sesión</h1>
+      <form id='login-form'>
+        <input
+          type='email'
+          id='email'
+          placeholder='Correo electrónico'
+          required
+        />
+        <input type='password' id='password' placeholder='Contraseña' required />
+        <button type='submit'>Ingresar</button>
+      </form>
+      <hr />
+      <button id='github-login'>Ingresar con GitHub</button>
+      <p>¿No tienes cuenta? <a href={PATH.REGISTER}>Regístrate aquí</a></p>
+      <p id='message' class='message'></p>
+    </main>
+  </section>
+</Layout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $, baseUrl } from '@/utils/functions';
+  import { PATH } from '@/pages/02/paths';
+
+  const message = $<HTMLParagraphElement>('#message');
+  const $email = $<HTMLInputElement>('#email');
+  const $password = $<HTMLInputElement>('#password');
+  const loginForm = $<HTMLFormElement>('#login-form');
+
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $email.value.trim();
+    const password = $password.value;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      message.textContent = error.message;
+    } else {
+      window.location.href = PATH.INDEX;
+    }
+  });
+
+  const githubLoginBtn = document.getElementById('github-login');
+
+  if (githubLoginBtn) {
+    githubLoginBtn.addEventListener('click', async () => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: baseUrl('/02/auth')
+        }
+      });
+
+      if (error) {
+        message.textContent = error.message;
+      }
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const authError = params.get('error');
+
+  if (authError) {
+    message.textContent = decodeURIComponent(authError);
+    message.style.color = 'red';
+  }
+</script>

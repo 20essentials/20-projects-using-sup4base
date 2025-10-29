@@ -1,0 +1,290 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title='Github Auth and Email'>
+  <aside class='todos-page'>
+    <main class='container'>
+      <header>
+        <h1>Mis Tareas</h1>
+        <button id='logout-btn'>Cerrar Sesión</button>
+      </header>
+
+      <form id='todo-form'>
+        <input
+          type='text'
+          id='todo-input'
+          placeholder='Nueva tarea...'
+          required
+        />
+        <button type='submit'>Agregar</button>
+      </form>
+
+      <ul id='todo-list'></ul>
+      <p id='empty-msg' class='message'>No tienes tareas aún.</p>
+    </main>
+  </aside>
+</Layout>
+
+<script>
+  import { supabase, type UserType } from '@/lib/supabase';
+  import { $ } from '@/utils/functions';
+  import { PATH} from '@/pages/02/paths'
+  const logoutBtn = $<HTMLButtonElement>('#logout-btn');
+  const todoForm = $<HTMLFormElement>('#todo-form');
+  const todoInput = $<HTMLInputElement>('#todo-input');
+  const todoList = $('#todo-list');
+  const emptyMsg = $('#empty-msg');
+
+  let user: UserType | null = null;
+  let todos: { id: string; title: string; completed: boolean }[] = [];
+ 
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      window.location.href = PATH.LOGIN  
+      return;
+    }
+
+    user = sessionData.session.user;
+
+    await loadTodos();
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = PATH.LOGIN;
+  });
+
+  todoForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const title = todoInput.value.trim();
+    if (!title) return;
+
+    const { error } = await supabase.from('todos').insert([
+      {
+        user_id: user?.id,
+        title,
+        completed: false
+      }
+    ]);
+
+    if (!error) {
+      todoInput.value = '';
+      await loadTodos();
+    } else {
+      alert('Error al crear tarea: ' + error.message);
+    }
+  });
+
+  async function loadTodos() {
+    const { data, error } = await supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', user?.id)
+      .order('completed', { ascending: true }) 
+      .order('created_at', { ascending: true });
+
+    if (!error) {
+      todos = data;
+      renderTodos();
+    } else {
+      alert('Error al cargar tareas: ' + error.message);
+    }
+  }
+
+  function renderTodos() {
+    todoList.innerHTML = '';
+
+    if (todos.length === 0) {
+      emptyMsg.style.display = 'block';
+      return;
+    } else {
+      emptyMsg.style.display = 'none';
+    }
+
+    todos.forEach(todo => {
+      const li = document.createElement('li');
+      li.className = 'todo-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = todo.completed;
+      checkbox.addEventListener('change', async () => {
+        await supabase
+          .from('todos')
+          .update({
+            completed: checkbox.checked,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', todo.id);
+        await loadTodos();
+      });
+
+      const span = document.createElement('span');
+      span.textContent = todo.title;
+      if (todo.completed) span.classList.add('completed');
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✏️';
+      editBtn.addEventListener('click', () => {
+        const newTitle = prompt('Editar tarea:', todo.title);
+        if (newTitle && newTitle.trim() !== '') {
+          supabase
+            .from('todos')
+            .update({
+              title: newTitle.trim(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', todo.id)
+            .then(loadTodos);
+        }
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '🗑️';
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('¿Eliminar esta tarea?')) {
+          supabase.from('todos').delete().eq('id', todo.id).then(loadTodos);
+        }
+      });
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(editBtn);
+      li.appendChild(deleteBtn);
+
+      todoList.appendChild(li);
+    });
+  }
+</script>
+
+<style is:global>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .message {
+    margin-top: 1rem;
+    text-align: center;
+    color: red;
+  }
+
+
+
+  /* === Estilos para la página de tareas (index.html) === */
+  .todos-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+    color: #111827;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    padding: 2rem;
+  }
+
+  .todos-page .container {
+    width: 100%;
+    max-width: 600px;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .todos-page header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .todos-page h1 {
+    font-size: 1.75rem;
+  }
+
+  .todos-page button {
+    background-color: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .todos-page button:hover {
+    background-color: #1d4ed8;
+  }
+
+  .todos-page form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .todos-page input[type='text'] {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+  }
+
+  .todos-page #todo-list {
+    list-style: none;
+  }
+
+  .todos-page .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .todos-page .todo-item span {
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .todos-page .todo-item span.completed {
+    text-decoration: line-through;
+    color: #6b7280;
+  }
+
+  .todos-page .todo-item button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    background-color: transparent;
+    color: #374151;
+  }
+
+  .todos-page .todo-item button:hover {
+    color: #111827;
+  }
+
+  .todos-page .message {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+</style>

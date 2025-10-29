@@ -1,0 +1,67 @@
+<div id='world-grid'></div>
+
+<style is:global>
+  body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #world-grid {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #world-grid img {
+    position: absolute;
+    max-width: 160px;
+    max-height: 160px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 0 15px rgb(0 0 0 / 0.15);
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+
+
+  const grid = document.getElementById('world-grid') as HTMLDivElement;
+
+  function randomPos(max: number): number {
+    return Math.random() * max;
+  }
+
+  async function loadImages(): Promise<void> {
+    const { data } = await supabase.storage
+      .from('project-7-bucket')
+      .list('canvases');
+
+    if (!data) return;
+
+    const urls = data
+      .filter(f => f.name.endsWith('.png'))
+      .map(
+        f =>
+          supabase.storage
+            .from('project-7-bucket')
+            .getPublicUrl(`canvases/${f.name}`).data.publicUrl
+      );
+
+    const vw = window.innerWidth - 170;
+    const vh = window.innerHeight - 170;
+
+    urls.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.left = `${randomPos(vw)}px`;
+      img.style.top = `${randomPos(vh)}px`;
+      grid.appendChild(img);
+    });
+  }
+
+  loadImages();
+</script>

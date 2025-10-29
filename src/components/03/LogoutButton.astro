@@ -1,0 +1,145 @@
+<button class='button am-logout-button-of-project-3'>
+  <span>L</span>
+  <span>O</span>
+  <span>G</span>
+  <span>O</span>
+  <span>U</span>
+  <span>T</span>
+</button>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/components/03/path';
+
+  document.addEventListener('click', async e => {
+    const target = e.target as HTMLElement;
+    if (
+      target.matches('.am-logout-button-of-project-3') ||
+      target.matches('.am-logout-button-of-project-3 *')
+    ) {
+      await supabase.auth.signOut();
+      window.location.href = PATH.login;
+    }
+  });
+</script>
+
+<style>
+  /* 3D Button Styling */
+  .button {
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background-color: #3b0a45;
+    box-shadow:
+      4px 4px 8px rgba(0, 0, 0, 0.6),
+      inset 4px 4px 8px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+    display: inline-flex;
+    gap: 5px;
+    position: absolute;
+    left: 2vmax;
+    bottom: 2vmax;
+  }
+
+  /* Add span for each letter */
+  .button span {
+    position: relative;
+    display: inline-block;
+    transition:
+      transform 0.3s ease,
+      color 0.3s ease;
+    z-index: 2;
+  }
+
+  /* Bubble animation on hover */
+  .button span:hover {
+    transform: scale(1.3) translateY(-4px);
+    color: #ff99ff;
+    text-shadow: none; /* Remove the previous shadow for a cleaner look */
+  }
+
+  /* Button hover effects */
+  .button:hover {
+    box-shadow:
+      4px 4px 8px rgba(0, 0, 0, 0.9),
+      inset 4px 4px 8px rgba(255, 255, 255, 0.15);
+    transform: translateY(-5px);
+    border-color: #ff66ff; /* Adds a glowing effect on hover */
+  }
+
+  /* Grid container */
+  .button::before {
+    content: '';
+    position: absolute;
+    top: -150%;
+    left: -150%;
+    width: 600%; /* Keeps the extended size */
+    height: 600%; /* Keeps the extended size */
+    background: repeating-linear-gradient(
+        to right,
+        rgba(255, 105, 180, 0.4) 0,
+        /* Pink color for vertical lines */ rgba(255, 255, 255, 0.2) 2px,
+        transparent 2px,
+        transparent 20px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255, 105, 180, 0.4) 0,
+        /* Pink color for horizontal lines */ rgba(255, 255, 255, 0.2) 2px,
+        transparent 2px,
+        transparent 20px
+      );
+    transform: translate(-50%, -50%) rotateX(45deg) rotateZ(45deg);
+    animation: gridScroll 4s linear infinite;
+    z-index: 1;
+  }
+
+  /* Keyframe animation for infinite scrolling grid */
+  @keyframes gridScroll {
+    0% {
+      transform: translate(-20%, -50%) rotateX(45deg) rotateZ(45deg) translateY(0);
+    }
+    100% {
+      transform: translate(-20%, -50%) rotateX(45deg) rotateZ(45deg)
+        translateY(40px);
+    }
+  }
+
+  /* Faster grid scroll on hover */
+  .button:hover::before {
+    animation: gridScrollFast 2s linear infinite;
+  }
+
+  /* Keyframe animation for faster scrolling */
+  @keyframes gridScrollFast {
+    0% {
+      transform: translate(-20%, -50%) rotateX(45deg) rotateZ(45deg) translateY(0);
+    }
+    100% {
+      transform: translate(-20%, -50%) rotateX(45deg) rotateZ(45deg)
+        translateY(40px);
+    }
+  }
+
+  /* Add a new neubrutalism look */
+  .button::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    z-index: -2;
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.6);
+  }
+</style>

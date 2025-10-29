@@ -1,0 +1,6 @@
+.am-canvas-board {
+  background-color: #fff4;
+  width: var(--w, 300px);
+  margin-inline: auto;
+  height: var(--h, 300px);
+}

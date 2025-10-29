@@ -1,0 +1,26 @@
+---
+import Introduction from '@/components/07/Introduction.astro';
+import Layout from '@/layouts/Layout.astro';
+import ButtonSend from '@/components/07/ButtonSend.astro';
+---
+
+<Layout title='Global Designs (Storage Supabase)'>
+  <Introduction />
+  <ButtonSend />
+</Layout>
+
+<script>
+  //if the User is not logged in, redirect to login page
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/components/04/path';
+  import { setPreviousUrl } from '@/utils/localStorage';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { error: sessionError, data: sessionData } =
+      await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      setPreviousUrl({ previousUrl: window.location.href });
+      window.location.href = PATH.login;
+    }
+  });
+</script>

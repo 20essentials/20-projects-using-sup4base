@@ -1,0 +1,49 @@
+---
+const array_of_projects = [
+  {
+    title: 'Simple To Do List',
+    href: '01/project-01-simple-to-do-list'
+  },
+  {
+    title: 'Github Auth and Email',
+    href: '02/project-02-github-auth-and-email'
+  },
+  {
+    title: 'Login and Register With Email',
+    href: '03/'
+  },
+  {
+    title: 'Login with Google',
+    href: '04/'
+  },
+  {
+    title: 'Pixel Art (to practice Database)',
+    href: '05/'
+  },
+  {
+    title: 'RealTime Active Users ',
+    href: '06/'
+  },
+  {
+    title: 'Global Designs (Storage Supabase)',
+    href: '07/'
+  },
+];
+---
+
+<section class='container-links'>
+  {
+    array_of_projects.map(({ title, href }, i) => (
+      <a href={href}>{`${i + 1}) ${title}`}</a>
+    ))
+  }
+</section>
+
+<style>
+  .container-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1vmax;
+    padding: 1vmax;
+  }
+</style>

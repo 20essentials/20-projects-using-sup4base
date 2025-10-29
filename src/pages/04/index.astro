@@ -1,0 +1,59 @@
+---
+import Introduction from '@/components/04/Introduction.astro';
+import LogoutButton from '@/components/04/LogoutButton.astro';
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title='Login With Google'>
+  <Introduction />
+  <LogoutButton />
+</Layout>
+
+<style>
+  body {
+    height: 100vh;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    --current-color: #0ff;
+    --bg-size: 96px;
+    background-image: repeating-conic-gradient(
+        from 0deg at 0% 0%,
+        #000 0deg,
+        var(--current-color) 10deg
+      ),
+      repeating-conic-gradient(
+        from 0deg at 100% 0%,
+        var(--current-color) 0deg,
+        #000 10deg
+      ),
+      repeating-conic-gradient(
+        from 0deg at 100% 100%,
+        var(--current-color) 0deg,
+        #000 10deg
+      ),
+      repeating-conic-gradient(
+        from 0deg at 0% 100%,
+        var(--current-color) 0deg,
+        #000 10deg
+      );
+    background-size: var(--bg-size) var(--bg-size);
+    background-blend-mode: screen;
+  }
+</style>
+
+<script>
+  //if the User is not logged in, redirect to login page
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/components/04/path';
+  
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { error: sessionError, data: sessionData } =
+      await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      window.location.href =  PATH.login;
+    }
+  });
+</script>
