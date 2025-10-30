@@ -25,10 +25,84 @@ const srcCamera = baseUrl('/assets/photoupload.png');
 </style>
 
 <script>
-  document.addEventListener('click', async e => {
-    const target = e.target as HTMLElement;
-    if (target.matches('.am-upload-to-storage')) {
-      alert('Saved Correctly');
+  import { $ } from '@/utils/functions';
+import { supabase } from '@/lib/supabase';
+
+const $containerWithImage = $('.container-img-portada') as HTMLElement;
+const $inputPrice = $('.am-input.price') as HTMLInputElement;
+const $characterName = $('.character-name') as HTMLInputElement;
+const $inputFile = $('#input-upload-image') as HTMLInputElement;
+
+let lastFile: File | null = null;
+
+$inputFile.addEventListener('change', (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  lastFile = file;
+
+  const imageURL = URL.createObjectURL(file);
+  $containerWithImage.style.setProperty('--bg', `url("${imageURL}")`);
+});
+
+document.addEventListener('click', async e => {
+  const target = e.target as HTMLElement;
+  if (!target.matches('.am-upload-to-storage')) return;
+
+  if (!lastFile) {
+    alert('Primero selecciona una imagen para subir.');
+    return;
+  }
+
+  const price = $inputPrice.value.trim().replace(/\D/g, '');
+  const name = $characterName.value.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    alert('Usuario no autenticado.');
+    return;
+  }
+
+  const userId = user.id;
+
+  // --- 1. Eliminar todas las imágenes existentes del usuario ---
+  const { data: existingFiles, error: listError } = await supabase.storage
+    .from('project-8-bucket')
+    .list(`images/${userId}/`);
+
+  if (listError) {
+    console.error('Error listando imágenes del usuario:', listError);
+  } else if (existingFiles && existingFiles.length > 0) {
+    const pathsToDelete = existingFiles.map(file => `images/${userId}/${file.name}`);
+    const { error: removeError } = await supabase.storage
+      .from('project-8-bucket')
+      .remove(pathsToDelete);
+
+    if (removeError) {
+      console.error('Error eliminando imágenes existentes:', removeError);
+      alert('No se pudieron eliminar las imágenes anteriores.');
+      return;
     }
-  });
+  }
+
+  // --- 2. Subir la nueva imagen ---
+  const extension = lastFile.name.split('.').pop();
+  const fileName = `${name}-${price}.${extension}`;
+  const filePath = `images/${userId}/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from('project-8-bucket')
+    .upload(filePath, lastFile, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    console.error('Error al subir la imagen:', error);
+    alert('Error al subir la imagen a Supabase.');
+    return;
+  }
+
+  alert('Imagen subida correctamente a Supabase.');
+});
 </script>
