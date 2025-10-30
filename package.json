@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "2.74.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@zumer/snapdom": "^1.9.14",
     "astro": "5.13.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

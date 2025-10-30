@@ -1,0 +1,34 @@
+---
+import { baseUrl } from '@/utils/functions';
+const srcCamera = baseUrl('/assets/photoupload.png');
+---
+
+<img
+  class='am-upload-to-storage'
+  src={srcCamera}
+  alt='upload'
+  title='Save Data'
+/>
+
+<style>
+  .am-upload-to-storage {
+    position: fixed;
+    bottom: 1.4vmax;
+    left: 1.4vmax;
+    width: 3.2vmax;
+    transition: opacity 0.2s ease-in-out;
+
+    &:active {
+      opacity: 0.5;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('click', async e => {
+    const target = e.target as HTMLElement;
+    if (target.matches('.am-upload-to-storage')) {
+      alert('Saved Correctly');
+    }
+  });
+</script>

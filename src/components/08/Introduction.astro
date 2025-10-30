@@ -1,0 +1,111 @@
+---
+import DownloadButton from './DownloadButton.astro';
+import UploadToStorage from './UploadToStorage.astro';
+
+const number = Number(30_000_000_000)
+  .toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  })
+  .slice(1);
+---
+
+<DownloadButton />
+<UploadToStorage />
+
+<article class='am-container'>
+  <section class='base-poster'></section>
+  <label class='container-img-portada'>
+    <input type='file' id='input-upload-image' accept='image/*' hidden />
+  </label>
+  <input
+    type='text'
+    class='am-input character-name'
+    value='MIDUDEV'
+    maxlength='15'
+  />
+  <input type='text' class='am-input price' value={number} maxlength='14' />
+</article>
+
+<style>
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: bottom;
+    background-image: url('/assets/op-background.avif');
+  }
+
+  .am-container {
+    position: relative;
+    width: 320px;
+    height: 480px;
+  }
+
+  .base-poster {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url('/assets/base-one-piece.png');
+    position: relative;
+    z-index: 5;
+  }
+
+  .container-img-portada {
+    position: absolute;
+    width: 244px;
+    height: 186px;
+    background-image: url('/assets/wanted.avif');
+    background-size: cover;
+    background-position: center;
+    top: 116px;
+    left: 42px;
+    z-index: -1;
+    box-shadow: inset 0 0 30px black;
+  }
+
+  @font-face {
+    font-family: 'scheherazadenew';
+    src: url('/assets/scheherazadenew.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  .am-input {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    left: 50%;
+    width: 70%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 0;
+    color: #563f39;
+    font-family: scheherazadenew;
+
+    &.character-name {
+      /* background-color: red; */
+      position: absolute;
+      bottom: 80px;
+      text-align: center;
+      font-size: 40px;
+      line-height: 0.5;
+    }
+
+    &.price {
+      font-family: 'Times New Roman', Times, serif;
+      /* background-color: blue; */
+      bottom: 63px;
+      width: 70%;
+      left: 60%;
+      font-size: 28px;
+      font-weight: 200;
+    }
+  }
+</style>

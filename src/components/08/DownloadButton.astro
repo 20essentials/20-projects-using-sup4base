@@ -1,0 +1,37 @@
+---
+import { baseUrl } from '@/utils/functions';
+const srcCamera = baseUrl('/assets/photodonwload.png');
+---
+
+<img class='am-camera' src={srcCamera} alt='hello' title="Download Photo" />
+
+<style>
+  .am-camera {
+    position: fixed;
+    top: 1.4vmax;
+    right: 1.4vmax;
+    width: 3.2vmax;
+    transition: opacity 0.2s ease-in-out;
+
+    &:active {
+      opacity: 0.5;
+    }
+  }
+</style>
+
+<script>
+  import { $ } from '@/utils/functions';
+  import { snapdom } from '@zumer/snapdom';
+  const elementToTakePhoto = $('.am-container');
+
+  document.addEventListener('click', async e => {
+    const target = e.target as HTMLElement;
+    if (target.matches('.am-camera')) {
+      const result = await snapdom(elementToTakePhoto, {
+        embedFonts: true
+      });
+
+      await result.download({ format: 'jpg', filename: 'photo' });
+    }
+  });
+</script>
