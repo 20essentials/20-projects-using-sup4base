@@ -1,0 +1,24 @@
+---
+import Introduction from '@/components/09/Introduction.astro';
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title='Using a Remote Procedure Call (RPC)'>
+  <Introduction />
+</Layout>
+
+<script>
+  //if the User is not logged in, redirect to login page
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/components/04/path';
+  import { setPreviousUrl } from '@/utils/localStorage';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { error: sessionError, data: sessionData } =
+      await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      setPreviousUrl({ previousUrl: window.location.href });
+      window.location.href = PATH.login;
+    }
+  });
+</script>
