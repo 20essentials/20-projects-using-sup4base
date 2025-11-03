@@ -9,17 +9,17 @@ export type Task = {
 };
 
 const { data } = await supabase
-  .from('tasks')
+  .from('project_01_tasks')
   .select('*')
   .order('id', { ascending: false });
 
 const tasks = (data ?? []) as Task[];
-console.log(tasks);
 ---
 
-<Layout title='Simple To Do List'>
+<Layout title='Global Todo List'>
   <section class='am-container'>
-    <h1>✅ Mis Tareas</h1>
+    <h1>✅ Global Todo List (Everyone in The World Can Edit It)</h1>
+    <br />
 
     <form id='taskForm'>
       <input type='text' id='taskInput' placeholder='Nueva tarea...' />
@@ -104,25 +104,31 @@ console.log(tasks);
     const title = input.value.trim();
     if (!title) return;
 
-    const { error } = await supabase.from('tasks').insert([{ title }]);
+    const { data: insertedData, error } = await supabase
+      .from('project_01_tasks')
+      .insert([{ title, done: false }])
+      .select('*');
+
     if (error) {
       console.error('Error al insertar tarea:', error.message);
       return;
     }
 
+    const newTask = insertedData[0]; // Aquí tienes id, title, done correctos
     const taskList = $('#taskList');
     const newLabel = document.createElement('label');
     newLabel.className = 'am-task';
-    newLabel.dataset.id = 'temporal-id';
+    newLabel.dataset.id = String(newTask.id); // <-- id real
     newLabel.innerHTML = `
-      ${title}
-      <input class="am-checkbox-of-a-task" type="checkbox" />
-    `;
+  ${newTask.title}
+  <input class="am-checkbox-of-a-task" type="checkbox" />
+`;
     taskList.prepend(newLabel);
     input.value = '';
   });
 
   document.addEventListener('change', async e => {
+    e.preventDefault();
     const target = e.target as HTMLInputElement;
     if (!target.matches('.am-checkbox-of-a-task')) return;
 
@@ -131,13 +137,13 @@ console.log(tasks);
     const idTask = Number(labelElement.getAttribute('data-id') ?? '');
 
     const { error } = await supabase
-      .from('tasks')
+      .from('project_01_tasks')
       .update({ done })
       .eq('id', idTask);
 
     if (error) {
       console.error('Error al actualizar tarea:', error.message);
-      target.checked = !done; 
+      target.checked = !done;
       return;
     }
 
