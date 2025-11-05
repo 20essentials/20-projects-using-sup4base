@@ -9,7 +9,7 @@ export const POST: APIRoute = async ({ request }) => {
     const usuario_id = body.record?.usuario_id;
     const total_compra = body.record?.total_compra;
 
-    if (!usuario_id || total_compra === undefined) {
+    if (!usuario_id || !total_compra ) {
       return new Response(
         JSON.stringify({ error: 'Missing fields in webhook payload' }),
         { status: 400 }
