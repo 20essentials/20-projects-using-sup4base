@@ -42,7 +42,7 @@ const CartModal = ({
         if (error) console.info('Error updating total');
         if (correctData) console.info('Total updated successfully');
 
-          await channel.send({
+        await channel.send({
           type: 'broadcast',
           event: 'total_updated',
           payload: { usuario_id: userId, total_compra: priceTotal }
