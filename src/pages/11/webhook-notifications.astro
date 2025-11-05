@@ -21,15 +21,13 @@ import Layout from '@/layouts/Layout.astro';
 
 <script>
   import { $ } from '@/utils/functions';
-  import { supabase } from '@/lib/supabase';
   const totalOutput = $('.total');
   import { channel } from '@/components/11/commonChannel';
 
   channel
     .on('broadcast', { event: 'total_updated' }, payload => {
-      console.log(payload);
       const { total_compra } = payload;
-      if (totalOutput) totalOutput.textContent = total_compra;
+       totalOutput.textContent = total_compra ?? '0';
     })
     .subscribe();
 </script>
