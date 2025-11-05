@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ItemCart } from './ItemCart';
 import { supabase } from '@/lib/supabase';
+import { channel } from '@/components/11/commonChannel';
 
 const normalizePrice = ({ price, quantity }) => {
   const priceNormalize = +price.replace(',', '.');
@@ -38,6 +39,12 @@ const CartModal = ({
         .select();
       if (error) console.info('Error updating total');
       if (correctData) console.info('Total updated successfully');
+
+      await channel.send({
+        type: 'broadcast',
+        event: 'total_updated',
+        payload: { usuario_id: userId, total_compra: priceTotal }
+      });
     }
 
     updateTotalValue();
