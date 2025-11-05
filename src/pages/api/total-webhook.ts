@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
+import { channel } from '@/components/11/commonChannel';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -9,7 +10,7 @@ export const POST: APIRoute = async ({ request }) => {
     const usuario_id = body.record?.usuario_id;
     const total_compra = body.record?.total_compra;
 
-    if (!usuario_id || !total_compra ) {
+    if (!usuario_id || !total_compra) {
       return new Response(
         JSON.stringify({ error: 'Missing fields in webhook payload' }),
         { status: 400 }
@@ -30,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Broadcast del total actualizado via Supabase Realtime
     try {
-      await supabase.channel('totales').send({
+      await channel.send({
         type: 'broadcast',
         event: 'total_updated',
         payload: { usuario_id, total_compra }
