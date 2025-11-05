@@ -3,8 +3,35 @@ import Layout from '@/layouts/Layout.astro';
 ---
 
 <Layout title='Webhook Notifications'>
-  <h1>Hello</h1>
+  <h1>Your Total is: $<output class='total'>0</output></h1>
 </Layout>
+
+<style>
+  body {
+    height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    background-image: url('/assets/project-11-bg-grayo.avif');
+    background-position: center;
+    background-size: cover;
+    color: #eee;
+  }
+</style>
+
+<script>
+  import { $ } from '@/utils/functions';
+  import { supabase } from '@/lib/supabase';
+  const totalOutput = $('.total');
+  const channel = supabase.channel('totales');
+
+  channel
+    .on('broadcast', { event: 'total_updated' }, payload => {
+      const { total_compra } = payload;
+      if (totalOutput) totalOutput.textContent = total_compra;
+    })
+    .subscribe();
+</script>
 
 <script>
   //if the User is not logged in, redirect to login page

@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { ItemCart } from './ItemCart';
+import { supabase } from '@/lib/supabase';
 
 const normalizePrice = ({ price, quantity }) => {
   const priceNormalize = +price.replace(',', '.');
@@ -21,6 +23,25 @@ const CartModal = ({
       0
     )
     .toFixed(2);
+
+  useEffect(() => {
+    async function updateTotalValue() {
+      const { data } = await supabase.auth.getUser();
+      const userId = data.user?.id;
+      if (!userId) return;
+      const { data: correctData, error } = await supabase
+        .from('project_11_compras')
+        .upsert(
+          { usuario_id: userId, total_compra: priceTotal },
+          { onConflict: 'usuario_id' }
+        )
+        .select();
+      if (error) console.info('Error updating total');
+      if (correctData) console.info('Total updated successfully');
+    }
+
+    updateTotalValue();
+  }, [priceTotal]);
 
   return (
     <section className='cart-modal' ref={myRef}>
