@@ -26,28 +26,33 @@ const CartModal = ({
     .toFixed(2);
 
   useEffect(() => {
-    async function updateTotalValue() {
-      const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id;
-      if (!userId) return;
-      const { data: correctData, error } = await supabase
-        .from('project_11_compras')
-        .upsert(
-          { usuario_id: userId, total_compra: priceTotal },
-          { onConflict: 'usuario_id' }
-        )
-        .select();
-      if (error) console.info('Error updating total');
-      if (correctData) console.info('Total updated successfully');
+    const debounceTimeout = setTimeout(async () => {
+      async function updateTotalValue() {
+        const { data } = await supabase.auth.getUser();
+        const userId = data.user?.id;
+        if (!userId) return;
+        const { data: correctData, error } = await supabase
+          .from('project_11_compras')
+          .upsert(
+            { usuario_id: userId, total_compra: priceTotal },
+            { onConflict: 'usuario_id' }
+          )
+          .select();
 
-    /*   await channel.send({
-        type: 'broadcast',
-        event: 'total_updated',
-        payload: { usuario_id: userId, total_compra: priceTotal }
-      }); */
-    }
+        if (error) console.info('Error updating total');
+        if (correctData) console.info('Total updated successfully');
 
-    updateTotalValue();
+        /*   await channel.send({
+          type: 'broadcast',
+          event: 'total_updated',
+          payload: { usuario_id: userId, total_compra: priceTotal }
+        }); */
+      }
+
+      updateTotalValue();
+    }, 500);
+
+    return () => clearTimeout(debounceTimeout);
   }, [priceTotal]);
 
   return (
