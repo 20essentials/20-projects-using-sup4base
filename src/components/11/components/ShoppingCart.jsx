@@ -4,11 +4,12 @@ import {
   shoppingReducer,
   TYPES
 } from '../reducers/shoppingReducer';
-import { ItemProduct } from './itemProduct';
+import { ItemProduct } from './ItemProduct.jsx';
 import { ItemLoader } from './ItemLoader';
 import CartModal from './CartModal';
 import { useRef } from 'react';
 import { useState } from 'react';
+import { PATH } from '../path.js';
 
 const ShoppingCart = () => {
   const [state, dispatch] = useReducer(shoppingReducer, initialStateShoppingCart);
@@ -58,6 +59,10 @@ const ShoppingCart = () => {
         restToCounter={restToCounter}
       ></CartModal>
       <header className='am-header'>
+        <p className='message'>
+          If You Want to See the Notifications of the webhook please
+          &nbsp;<a href={PATH.webhookNotificationsPage}>Clich Here</a>
+        </p>
         <ItemLoader />
       </header>
       <section className='container-products'>

@@ -27,6 +27,19 @@ body,
   color: #1e90ff;
   transition: width 0.3s ease;
 
+  .message {
+     position: absolute;
+     z-index: 50;
+     left: 1vmax;
+     top: 50%;
+     transform: translateY(-50%);
+     font-size: 1vmax;
+
+     a {
+      color: lime;
+     }
+  }
+
   .container-loader {
     width: 300px;
     height: 300px;
