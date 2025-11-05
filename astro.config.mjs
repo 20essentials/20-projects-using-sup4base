@@ -30,7 +30,7 @@ export default defineConfig({
   //Deploy normal project
   // base: '/project-1219/',
   // site: 'https://20essentials.github.io/project-1219/'
-  site: 'http://localhost:4321/',
+  // site: 'http://localhost:4321/',
 
   adapter: vercel(),
   integrations: [react()]
