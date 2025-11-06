@@ -10,8 +10,11 @@
   background-position: center;
   background-image: url('/assets/profile-card-3d-bg.avif');
 
-  * {
-    font-size: 2vmax;
+  .pc-details {
+
+    p {
+      margin-top: 1vmax;
+    }
   }
 }
 
