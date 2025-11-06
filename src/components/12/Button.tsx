@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import './Button.css';
+import type { UserDataType } from './ContainerProfileCard';
 
 export const Button = ({
   text,
@@ -10,14 +11,16 @@ export const Button = ({
 }: {
   text: string;
   colorButton: string;
-  callbackFn: (...args: any[]) => void;
-  nameRef?: RefObject<string>;
-  roleRef?: RefObject<string>;
+  callbackFn: (userData: UserDataType) => void;
+  nameRef: RefObject<string>;
+  roleRef: RefObject<string>;
 }) => {
   return (
     <button
       className='am-button'
-      onClick={() => callbackFn()}
+      onClick={() =>
+        callbackFn({ newName: nameRef.current, newRole: roleRef.current })
+      }
       style={{ '--clr-button': colorButton } as React.CSSProperties}
     >
       <b>{text}</b>

@@ -6,33 +6,27 @@ import { useRef, useState } from 'react';
 
 const DEFAULT_NAME = 'Jonathan';
 const DEFAULT_ROLE = 'Software Engineer';
+export type UserDataType = {
+  newName: string;
+  newRole: string;
+};
 
 export const ContainerProfileCard = () => {
   const [name, setName] = useState(DEFAULT_NAME);
   const [role, setRole] = useState(DEFAULT_ROLE);
-  const nameRef = useRef(DEFAULT_NAME);
-  const roleRef = useRef(DEFAULT_ROLE);
+  const nameRef = useRef<string>(DEFAULT_NAME);
+  const roleRef = useRef<string>(DEFAULT_ROLE);
 
-  const updateData = ({
-    newName,
-    newRole
-  }: {
-    newName: string;
-    newRole: string;
-  }) => {
+  const updateData = ({ newName, newRole }: UserDataType) => {
     setName(newName);
     setRole(newRole);
+    console.log({ newName, newRole })
   };
 
-  const deleteData = ({
-    newName,
-    newRole
-  }: {
-    newName: string;
-    newRole: string;
-  }) => {
+  const deleteData = ({ newName, newRole }: UserDataType) => {
     setName(DEFAULT_NAME);
     setRole(DEFAULT_ROLE);
+    
   };
 
   return (

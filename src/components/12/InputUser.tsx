@@ -24,7 +24,7 @@ export const InputUserData = ({
       <input type='text' value={valueInput} required onChange={updateValue} />
       <label>
         {placeholderName.split('').map((char, i) => (
-          <span style={{ transitionDelay: `${i * 50}ms` }}>{char}</span>
+          <span key={i} style={{ transitionDelay: `${i * 50}ms` }}>{char}</span>
         ))}
       </label>
     </div>
