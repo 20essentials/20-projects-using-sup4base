@@ -1,0 +1,221 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title='Magic Link Auth'>
+  <section class='container-form'>
+    <h2>Login with Magic Link</h2>
+    <form class='am-form-login'>
+      <div class='textInputWrapper'>
+        <input
+          placeholder='Your email...'
+          type='email'
+          class='textInput inputEmail'
+          required
+        />
+      </div>
+      <input class='submit' type='submit' value='Send Magic Link' />
+    </form>
+    <p class='message'></p>
+  </section>
+</Layout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $ } from '@/utils/functions';
+  import { PATH } from '@/components/03/path';
+  import { baseUrl } from '@/utils/functions';
+
+  const $formLogin = $<HTMLFormElement>('.am-form-login');
+  const $inputEmail = $<HTMLInputElement>('.inputEmail');
+  const $message = $<HTMLParagraphElement>('.message');
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Escucha cambios en el estado de autenticación
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Usuario autenticado correctamente (ej. después del magic link)
+        window.location.href = PATH.index;
+      }
+    });
+
+    // Si ya hay una sesión activa (por ejemplo, refrescando la página)
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+    if (user) {
+      window.location.href = PATH.index;
+    }
+  });
+
+  $formLogin.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const email = $inputEmail.value.trim();
+    if (!email) return;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: baseUrl(PATH.index)
+      }
+    });
+
+    if (error) {
+      $message.style.color = 'red';
+      $message.textContent = error.message;
+      return;
+    }
+
+    $message.style.color = 'green';
+    $message.textContent = `Magic link sent to ${email}. Check your inbox!`;
+    $inputEmail.value = '';
+  });
+</script>
+
+<style>
+  body {
+    height: 100vh;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    background-color: #212121;
+    --primary-color: #a3e583;
+
+    .container-form {
+      display: flex;
+      flex-direction: column;
+      padding: 2vmax;
+      border: 1px solid var(--primary-color);
+      gap: 1vmax;
+      text-align: center;
+
+      h2 {
+        color: var(--primary-color);
+      }
+
+      .am-form-login {
+        display: flex;
+        flex-direction: column;
+        gap: 1vmax;
+
+        .submit {
+          padding: 0.5vmax;
+          background-color: transparent;
+          box-shadow: inset 0 0 3vmax var(--primary-color);
+          border-radius: 4vmax;
+          border: none;
+          color: #e8e8e8;
+          outline: 0.1vmax solid var(--primary-color);
+
+          &:active {
+            opacity: 0.5;
+          }
+        }
+      }
+
+      .description {
+        color: #555;
+
+        a {
+          color: mediumorchid;
+        }
+      }
+    }
+  }
+
+  /* **************************TEXT INPUT WRAPPER *************************** */
+
+  .textInputWrapper {
+    position: relative;
+    width: 100%;
+    margin: 12px 5px;
+    --accent-color: var(--primary-color);
+  }
+
+  .textInputWrapper:before {
+    transition: border-bottom-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  }
+
+  .textInputWrapper:before,
+  .textInputWrapper:after {
+    content: '';
+    left: 0;
+    right: 0;
+    position: absolute;
+    pointer-events: none;
+    bottom: -1px;
+    z-index: 4;
+    width: 100%;
+  }
+
+  .textInputWrapper:focus-within:before {
+    border-bottom: 1px solid var(--accent-color);
+  }
+
+  .textInputWrapper:before {
+    transition: border-bottom-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  }
+
+  .textInputWrapper:focus-within:before {
+    border-bottom: 1px solid var(--accent-color);
+    transform: scaleX(1);
+  }
+
+  .textInputWrapper:focus-within:after {
+    border-bottom: 2px solid var(--accent-color);
+    transform: scaleX(1);
+  }
+
+  .textInputWrapper:after {
+    content: '';
+    transform: scaleX(0);
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1) 0ms;
+    will-change: transform;
+    border-bottom: 2px solid var(--accent-color);
+    border-bottom-color: var(--accent-color);
+  }
+
+  .textInput::placeholder {
+    transition: opacity 250ms cubic-bezier(0, 0, 0.2, 1) 0ms;
+    opacity: 1;
+    user-select: none;
+    color: rgba(255, 255, 255, 0.582);
+  }
+
+  .textInputWrapper .textInput {
+    border-radius: 5px 5px 0px 0px;
+    box-shadow: 0px 2px 5px rgb(35 35 35 / 30%);
+    max-height: 36px;
+    background-color: #252525;
+    transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-duration: 200ms;
+    transition-property: background-color;
+    color: #e8e8e8;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px;
+    width: 100%;
+    border-left: none;
+    border-bottom: none;
+    border-right: none;
+  }
+
+  .textInputWrapper .textInput:focus,
+  .textInputWrapper .textInput:active {
+    outline: none;
+  }
+
+  .textInputWrapper:focus-within .textInput,
+  .textInputWrapper .textInput:focus,
+  .textInputWrapper .textInput:active {
+    background-color: #353535;
+  }
+
+  .textInputWrapper:focus-within .textInput::placeholder {
+    opacity: 0;
+  }
+</style>
