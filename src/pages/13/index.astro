@@ -12,11 +12,11 @@ import Layout from '@/layouts/Layout.astro';
   import { supabase } from '@/lib/supabase';
   import { PATH } from '@/components/13/path';
 
-/*   document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const { error: sessionError, data: sessionData } =
       await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
       window.location.href = PATH.login;
     }
-  }); */
+  });
 </script>
