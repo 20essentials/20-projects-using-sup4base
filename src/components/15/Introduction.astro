@@ -1,0 +1,221 @@
+---
+import { baseUrl } from '@/utils/functions';
+---
+
+<div id='myDiv'>
+  <div id='myDivHeader'>
+    Click here to move <img
+      class='user-profile'
+      src={baseUrl('/assets/userDefault.png')}
+      alt='current-user-dragging'
+      title='unknown user'
+    />
+  </div>
+  <p>Move</p>
+  <p>This</p>
+  <p>Div</p>
+</div>
+
+<style>
+  *,
+  *::after,
+  *::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  body {
+    height: 100vh;
+    width: 100%;
+    background-image: linear-gradient(to top, #d9afd9 0%, #97d9e1 100%);
+  }
+
+  #myDiv {
+    position: absolute;
+    z-index: 9;
+    background-color: #f1f1f1;
+    border: 1px solid black;
+    text-align: center;
+    width: 200px;
+    cursor: grab;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+
+    p {
+      padding: 0.5rem;
+    }
+  }
+
+  #myDivHeader {
+    padding: 0.5rem;
+    cursor: move;
+    background-color: cadetblue;
+    color: white;
+    font-weight: bold;
+    position: relative;
+
+    &:active {
+      .user-profile {
+        opacity: 1;
+      }
+    }
+
+    .user-profile {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: #fff;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center;
+      right: -15px;
+      top: -15px;
+      opacity: 0;
+
+      &.visible {
+        opacity: 1;
+      }
+    }
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { baseUrl } from '@/utils/functions';
+  import { $ } from '@/utils/functions';
+
+  const randomName = `User ${Math.floor(Math.random() * 999)}`;
+  const $containerDragabble = $('#myDiv') as HTMLElement;
+  const $imgUser = $<HTMLImageElement>('.user-profile');
+
+  let full_name = randomName;
+  let avatar_url = baseUrl('/assets/userDefault.png');
+
+  const EVENT_NAME = 'project_15_drag_element';
+  const channel = supabase.channel(EVENT_NAME, {
+    config: { broadcast: { self: true } }
+  });
+
+  interface MessagePayload {
+    x: number;
+    y: number;
+    userAvatar: string;
+    isDragging: boolean;
+    draggingUser?: string;
+  }
+
+  let currentDraggingUser: string | null = null;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let elementStartX = 0;
+  let elementStartY = 0;
+
+  channel
+    .on('broadcast', { event: EVENT_NAME }, (e: { payload: MessagePayload }) => {
+      const { x, y, userAvatar, isDragging, draggingUser } = e.payload;
+      currentDraggingUser = isDragging ? (draggingUser ?? null) : null;
+
+      $imgUser.src = userAvatar;
+
+      if (draggingUser !== full_name) {
+        $containerDragabble.style.left = `${x}px`;
+        $containerDragabble.style.top = `${y}px`;
+        $imgUser.classList.add('visible');
+      } else {
+        $imgUser.classList.toggle('visible', false);
+      }
+    })
+    .subscribe();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const header = $containerDragabble.querySelector(
+      '#myDivHeader'
+    ) as HTMLElement;
+    if (!header) return;
+
+    const onMouseMove = (event: MouseEvent) => {
+      if (currentDraggingUser && currentDraggingUser !== full_name) return;
+
+      const dx = event.clientX - dragStartX;
+      const dy = event.clientY - dragStartY;
+
+      const newX = elementStartX + dx;
+      const newY = elementStartY + dy;
+
+      $containerDragabble.style.left = `${newX}px`;
+      $containerDragabble.style.top = `${newY}px`;
+
+      channel.send({
+        type: 'broadcast',
+        event: EVENT_NAME,
+        payload: {
+          x: newX,
+          y: newY,
+          userAvatar: avatar_url,
+          isDragging: true,
+          draggingUser: full_name
+        }
+      });
+    };
+
+    const onMouseUp = () => {
+      const finalX = parseInt($containerDragabble.style.left);
+      const finalY = parseInt($containerDragabble.style.top);
+
+      channel.send({
+        type: 'broadcast',
+        event: EVENT_NAME,
+        payload: {
+          x: finalX,
+          y: finalY,
+          userAvatar: avatar_url,
+          isDragging: false,
+          draggingUser: full_name
+        }
+      });
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    header.addEventListener('mousedown', (event: MouseEvent) => {
+      if (currentDraggingUser && currentDraggingUser !== full_name) {
+        alert('There is a User dragging this element right now');
+        return;
+      }
+
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      elementStartX = $containerDragabble.offsetLeft;
+      elementStartY = $containerDragabble.offsetTop;
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+  });
+
+  const { data } = await supabase.auth.getUser();
+  const identities = data?.user?.identities ?? [];
+  const googleProvider = identities.find(i => i.provider === 'google');
+  const identityData =
+    googleProvider?.identity_data ?? identities[0]?.identity_data;
+
+  if (identityData) {
+    full_name = identityData.full_name ?? full_name;
+    avatar_url = identityData.avatar_url ?? avatar_url;
+  }
+</script>
