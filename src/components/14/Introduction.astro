@@ -1,0 +1,269 @@
+---
+import { baseUrl } from '@/utils/functions';
+---
+
+<div class='container'>
+  <table class='am-table-users'>
+    <legend class='am-title'>Users</legend>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Created At</th>
+        <th>Role</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody class='am-table-users-body'>
+      <tr>
+        <td>mariana_dev</td>
+        <td>2025-11-09 14:32:10</td>
+        <td>Admin</td>
+        <td>mariana.dev@example.com</td>
+      </tr>
+      <tr>
+        <td>lucas_player</td>
+        <td>2025-11-08 19:45:03</td>
+        <td>User</td>
+        <td>lucas.player@example.com</td>
+      </tr>
+    </tbody>
+  </table>
+  <form class='container-add-new-user'>
+    <input type='text' class='am-input-username' placeholder='Dominic' />
+    <input type='text' class='am-input-role' placeholder='Software Engineer' />
+    <input type='email' class='am-input-email' placeholder='dominic@gmail.com' />
+    <button class='add-new-user-button'
+      ><span>Create New User</span>
+      <img src={baseUrl('/assets/add-user.gif')} alt='New User' /></button
+    >
+  </form>
+</div>
+
+<div class='container'>
+  <table class='am-table-new-clients'>
+    <legend class='am-title'>New Clients</legend>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Created At</th>
+      </tr>
+    </thead>
+    <tbody class='am-table-users-new-clients'>
+      <tr>
+        <td>mariana_dev</td>
+        <td>2025-11-09 14:32:10</td>
+      </tr>
+      <tr>
+        <td>lucas_player</td>
+        <td>2025-11-08 19:45:03</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<aside class="message">Imagine that these two tables are on two different pages. When you update one table, the other table receives the changes thanks to a PostgreSQL trigger</aside>
+
+<script>
+  import { $ } from '@/utils/functions';
+  import { z } from 'zod';
+  const $formContainerNewuser = $('.container-add-new-user');
+  const $tableBodyUser = $('.am-table-users-body');
+  const $tableBodyClients = $('.am-table-users-new-clients');
+  const $inputUsername = $('.am-input-username') as HTMLInputElement;
+  const $inputRole = $('.am-input-role') as HTMLInputElement;
+  const $inputEmail = $('.am-input-email') as HTMLInputElement;
+
+  $formContainerNewuser.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = $inputUsername.value.trim();
+    const role = $inputRole.value.trim();
+    const email = $inputEmail.value.trim();
+    const schema = z.object({
+      username: z.string().min(5),
+      role: z.string().min(5),
+      email: z.string().email()
+    });
+    try {
+      schema.parse({ username, role, email });
+      const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      $tableBodyUser.insertAdjacentHTML(
+        'beforeend',
+        `<tr>
+        <td>${username}</td>
+        <td>${createdAt}</td>
+        <td>${role}</td>
+        <td>${email}</td>
+      </tr>`
+      );
+      $tableBodyClients.insertAdjacentHTML(
+        'beforeend',
+        `<tr>
+        <td>${username}</td>
+        <td>${createdAt}</td>
+      </tr>`
+      );
+      $inputUsername.value = '';
+      $inputRole.value = '';
+      $inputEmail.value = '';
+    } catch (error) {
+      alert('Please provide valid inputs:\n- Username and Role must be at least 5 characters long.\n- Email must be a valid email address.');
+    }
+  });
+
+  /*   document.addEventListener('click', e => {
+    const target = e.target as HTMLElement;
+    if (target.matches('.add-new-user-button')) {
+      $tableBodyUser.insertAdjacentHTML(
+        'beforeend',
+        `<tr>
+        <td>mariana_dev</td>
+        <td>2025-11-09 14:32:10</td>
+        <td>Admin</td>
+        <td>mariana.dev@example.com</td>
+      </tr>`
+      );
+    }
+  }); */
+</script>
+
+<style is:global>
+  .message {
+    position: absolute;
+    left: 1vmax;
+    bottom: 1vmax;
+    font-size: 0.9vmax;
+    width: 25%;
+    text-wrap: balance;
+    mix-blend-mode: overlay;
+    font-style: italic;
+  }
+
+  body {
+    height: 100vh;
+    width: 100%;
+    background-image: url('/assets/project-14-bg.avif');
+    background-size: cover;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    gap: 1vmax;
+
+    * {
+      user-select: none;
+    }
+  }
+
+  .container {
+    position: relative;
+    /*    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); */
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    box-shadow: 0 0 1.2vmax rgba(0, 0, 0, 0.1);
+
+    * {
+      font-size: 1vmax;
+    }
+  }
+
+  .container-add-new-user {
+    width: 100%;
+    padding: 1vmax;
+    text-align: center;
+    border: 0.1vmax solid #000;
+    background-color: #0001;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    gap: 1vmax;
+
+    * {
+      font-size: 0.8vmax;
+    }
+
+    input,
+    button {
+      padding: 0.4vmax 0.8vmax;
+    }
+
+    .add-new-user-button {
+      width: auto;
+      text-align: center;
+      border: 0.1vmax dashed #0008;
+      background-color: #04aa6d;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+
+      transition: color 0.3s ease;
+
+      &:active {
+        opacity: 0.5;
+      }
+
+      &:hover {
+        background-color: #fff1;
+      }
+
+      img {
+        width: 2vmax;
+        height: 2vmax;
+        object-fit: cover;
+        filter: contrast(200%);
+      }
+    }
+  }
+
+  .am-title {
+    width: 100%;
+    text-align: center;
+    background-color: rgb(222, 222, 33);
+    padding: 1vmax;
+    font-weight: 700;
+    font-size: 1.2vmax;
+  }
+
+  th,
+  td {
+    padding: 0.8vmax;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #000;
+  }
+
+  th {
+    text-align: left;
+  }
+
+  thead {
+    th {
+      background-color: #7aca99;
+    }
+  }
+
+  tbody {
+    tr {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+    td {
+      position: relative;
+      &:hover {
+        &:before {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: -9999px;
+          bottom: -9999px;
+          background-color: rgba(255, 255, 255, 0.2);
+          z-index: -1;
+        }
+      }
+    }
+  }
+</style>
