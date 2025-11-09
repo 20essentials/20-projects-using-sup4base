@@ -8,13 +8,13 @@ import { baseUrl } from '@/utils/functions';
     <thead>
       <tr>
         <th>Username</th>
-        <th>Created At</th>
         <th>Role</th>
         <th>Email</th>
+        <th>Created At</th>
       </tr>
     </thead>
     <tbody class='am-table-users-body'>
-      <tr>
+      <!--  <tr>
         <td>mariana_dev</td>
         <td>2025-11-09 14:32:10</td>
         <td>Admin</td>
@@ -25,7 +25,7 @@ import { baseUrl } from '@/utils/functions';
         <td>2025-11-08 19:45:03</td>
         <td>User</td>
         <td>lucas.player@example.com</td>
-      </tr>
+      </tr> -->
     </tbody>
   </table>
   <form class='container-add-new-user'>
@@ -48,23 +48,20 @@ import { baseUrl } from '@/utils/functions';
         <th>Created At</th>
       </tr>
     </thead>
-    <tbody class='am-table-users-new-clients'>
-      <tr>
-        <td>mariana_dev</td>
-        <td>2025-11-09 14:32:10</td>
-      </tr>
-      <tr>
-        <td>lucas_player</td>
-        <td>2025-11-08 19:45:03</td>
-      </tr>
-    </tbody>
+    <tbody class='am-table-users-new-clients'> </tbody>
   </table>
 </div>
-<aside class="message">Imagine that these two tables are on two different pages. When you update one table, the other table receives the changes thanks to a PostgreSQL trigger</aside>
+<aside class='message'>
+  Imagine that these two tables are on two different pages. When you update one
+  table, the other table receives the changes thanks to a PostgreSQL trigger
+</aside>
 
 <script>
   import { $ } from '@/utils/functions';
   import { z } from 'zod';
+  import { ZodError } from 'zod';
+  import { supabase } from '@/lib/supabase';
+
   const $formContainerNewuser = $('.container-add-new-user');
   const $tableBodyUser = $('.am-table-users-body');
   const $tableBodyClients = $('.am-table-users-new-clients');
@@ -72,57 +69,145 @@ import { baseUrl } from '@/utils/functions';
   const $inputRole = $('.am-input-role') as HTMLInputElement;
   const $inputEmail = $('.am-input-email') as HTMLInputElement;
 
-  $formContainerNewuser.addEventListener('submit', async e => {
-    e.preventDefault();
-    const username = $inputUsername.value.trim();
-    const role = $inputRole.value.trim();
-    const email = $inputEmail.value.trim();
-    const schema = z.object({
-      username: z.string().min(5),
-      role: z.string().min(5),
-      email: z.string().email()
-    });
-    try {
-      schema.parse({ username, role, email });
-      const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  document.addEventListener('DOMContentLoaded', async () => {
+    // === Cargar usuarios globales ===
+    const { data: users, error: userError } = await supabase
+      .from('project_14_global_users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (userError) {
+      console.error('Error fetching users:', userError);
+      return;
+    }
+
+    users.forEach(user => {
+      const createdAt = new Date(user.created_at)
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19);
       $tableBodyUser.insertAdjacentHTML(
         'beforeend',
         `<tr>
-        <td>${username}</td>
+        <td>${user.username}</td>
+        <td>${user.role_text}</td>
+        <td>${user.email ?? '-'}</td>
         <td>${createdAt}</td>
-        <td>${role}</td>
-        <td>${email}</td>
       </tr>`
       );
+    });
+
+    // === Cargar nuevos clientes (trigger-generated) ===
+    const { data: clients, error: clientsError } = await supabase
+      .from('project_14_new_clients')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (clientsError) {
+      console.error('Error fetching clients:', clientsError);
+      return;
+    }
+
+    clients.forEach(client => {
+      const createdAt = new Date(client.created_at)
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19);
       $tableBodyClients.insertAdjacentHTML(
         'beforeend',
         `<tr>
+        <td>${client.username}</td>
+        <td>${createdAt}</td>
+      </tr>`
+      );
+    });
+  });
+
+  // === Evento de envío del formulario ===
+  $formContainerNewuser.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const username = $inputUsername.value.trim();
+    const role = $inputRole.value.trim();
+    const email = $inputEmail.value.trim();
+
+    const schema = z.object({
+      username: z.string().min(3, 'Username too short'),
+      role: z.string().min(3, 'Role too short'),
+      email: z.string().email('Invalid email')
+    });
+
+    try {
+      schema.parse({ username, role, email });
+
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert('User not authenticated.');
+        return;
+      }
+
+      // Insertar nuevo registro en project_14_global_users
+      const { error: insertError } = await supabase
+        .from('project_14_global_users')
+        .insert([
+          {
+            id: user.id,
+            username,
+            role_text: role,
+            email
+          }
+        ]);
+
+      if (insertError) {
+        console.error('Error inserting new user:', insertError);
+        alert('Error creating user: ' + insertError.message);
+        return;
+      }
+
+      // Mostrar en la tabla inmediatamente (sin esperar refetch)
+      const createdAt = new Date()
+        .toISOString()
+        .replace('T', ' ')
+        .substring(0, 19);
+
+      $tableBodyUser.insertAdjacentHTML(
+        'afterbegin',
+        `<tr>
+        <td>${username}</td>
+        <td>${role}</td>
+        <td>${email}</td>
+        <td>${createdAt}</td>
+      </tr>`
+      );
+
+      // El trigger creará automáticamente el registro en project_14_new_clients
+      $tableBodyClients.insertAdjacentHTML(
+        'afterbegin',
+        `<tr>
         <td>${username}</td>
         <td>${createdAt}</td>
       </tr>`
       );
+
+      // Limpiar inputs
       $inputUsername.value = '';
       $inputRole.value = '';
       $inputEmail.value = '';
-    } catch (error) {
-      alert('Please provide valid inputs:\n- Username and Role must be at least 5 characters long.\n- Email must be a valid email address.');
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const messages: string = err.issues
+          .map((issue) => `• ${issue.message}`)
+          .join('\n');
+
+        alert(messages || 'Invalid form data.');
+      } else {
+        alert('Unexpected error. Please try again.');
+      }
     }
   });
-
-  /*   document.addEventListener('click', e => {
-    const target = e.target as HTMLElement;
-    if (target.matches('.add-new-user-button')) {
-      $tableBodyUser.insertAdjacentHTML(
-        'beforeend',
-        `<tr>
-        <td>mariana_dev</td>
-        <td>2025-11-09 14:32:10</td>
-        <td>Admin</td>
-        <td>mariana.dev@example.com</td>
-      </tr>`
-      );
-    }
-  }); */
 </script>
 
 <style is:global>
@@ -154,9 +239,6 @@ import { baseUrl } from '@/utils/functions';
 
   .container {
     position: relative;
-    /*    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); */
   }
 
   table {
