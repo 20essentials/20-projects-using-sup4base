@@ -1,0 +1,344 @@
+---
+import { supabase } from '@/lib/supabase';
+
+async function getProject16Data() {
+  const { data, error } = await supabase
+    .from('project_16_data_readonly')
+    .select('rank, customer, city, state, totalpoints, entries');
+
+  if (error) {
+    console.error('Error fetching data:', error);
+    return [];
+  }
+
+  const formattedData = data.map(
+    ({ rank, customer, city, state, totalpoints, entries }) => [
+      rank,
+      customer,
+      city,
+      state,
+      totalpoints,
+      entries
+    ]
+  );
+
+  return formattedData;
+}
+
+const arrayOfData = await getProject16Data();
+---
+
+<section class='am-pagination'>
+  {
+    Array.from({ length: 10 }, (_, i) => (
+      <button class={`am-button-pagination ${i === 0 ? 'active' : ''}`}>
+        {i + 1}
+      </button>
+    ))
+  }
+</section>
+
+<table
+  id='fantasyTable'
+  class='display responsive no-wrap order-column'
+  width='100%'
+>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Customer</th>
+      <th>City</th>
+      <th>State</th>
+      <th>Total Points</th>
+      <th>Entries</th>
+    </tr>
+  </thead>
+  {
+    arrayOfData.map(([rank, customer, city, state, totalPoints, entries]) => (
+      <tr>
+        <td>{rank}</td>
+        <td>{customer}</td>
+        <td>{city}</td>
+        <td>{state}</td>
+        <td>{totalPoints}</td>
+        <td>{entries}</td>
+      </tr>
+    ))
+  }
+</table>
+
+<script>
+  const tableRows = Array.from(
+    document.querySelectorAll<HTMLTableRowElement>('#fantasyTable tbody tr')
+  );
+  const paginationButtons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('.am-button-pagination')
+  );
+  let currentPage = 1;
+
+  function showPage(page: number) {
+    const start = (page - 1) * 10;
+    const end = start + 10;
+
+    tableRows.forEach((row, i) => {
+      row.style.display = i >= start && i < end ? '' : 'none';
+    });
+
+    paginationButtons.forEach((btn, i) => {
+      btn.classList.toggle('active', i === page - 1);
+    });
+  }
+
+  paginationButtons.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      currentPage = i + 1;
+      showPage(currentPage);
+    });
+  });
+
+  showPage(currentPage);
+</script>
+
+<style>
+  .am-pagination {
+    position: absolute;
+    bottom: 1.5vmax;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5vmax;
+
+    .am-button-pagination {
+      width: 1.8vmax;
+      height: 1.8vmax;
+      background-color: #fff6;
+      color: #000;
+      border: 0.1vmax solid currentColor;
+
+      &.active {
+        background-color: #0006;
+        color: #fff;
+      }
+    }
+  }
+
+  body {
+    background-image: url('/assets/background-project-16.avif');
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    min-height: 100vh;
+    background-size: cover;
+    padding: 2vmax;
+  }
+
+  .border-right {
+    border-right: thin solid #f5f5f5;
+  }
+
+  .m-b-20 {
+    margin-bottom: 20px;
+  }
+
+  .m-b-30,
+  .m-b-60 {
+    margin-bottom: 30px;
+  }
+
+  .category-row {
+    ul {
+      list-style: none;
+      li {
+        margin-left: 0;
+        a {
+          font-style: normal;
+          > img {
+            margin-bottom: 30px;
+            transition: opacity 0.3s;
+            &:hover {
+              opacity: 0.54;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .category-link {
+    color: #2196f3;
+    &-sm {
+      font-size: 12px;
+    }
+  }
+
+  .ga-arrow-right {
+    position: relative;
+    top: 0.3em;
+  }
+
+  .inverse {
+    color: white;
+    a {
+      color: white;
+    }
+  }
+
+  #fantasyTable {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #474443;
+      border: solid thin #c1c1c1;
+    }
+
+    th {
+      background: #d6d6d6;
+    }
+
+    tr:nth-child(odd),
+    tr:nth-child(even) {
+      background: #fff;
+      border: solid thin #c1c1c1;
+    }
+
+    td:nth-child(1) {
+      background: #fff;
+      color: #0082d6;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      border-left: solid 1px #fff;
+    }
+
+    th:nth-child(1) {
+      text-align: center;
+      border-left: solid 1px #fff;
+    }
+
+    td:nth-child(2) {
+      text-transform: uppercase;
+    }
+
+    td:nth-child(5),
+    td:nth-child(6) {
+      background: #ededed;
+      color: #0082d6;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    th:nth-child(5),
+    th:nth-child(6) {
+      background: #d6d6d6;
+      text-align: left;
+    }
+  }
+
+  .pointLeader {
+    img {
+      float: left;
+      padding-right: 20px;
+      font-weight: 900;
+    }
+    p {
+      font-size: 0.75rem;
+      text-align: left;
+    }
+    h4 {
+      font-weight: 900;
+      text-align: left;
+    }
+  }
+
+  .align-center {
+    text-align: center;
+  }
+
+  .learnMore {
+    padding-left: 10px;
+  }
+
+  .md-label {
+    background: #bababa;
+  }
+
+  .md-label-orange {
+    background: #f78d2c;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0;
+    color: white;
+  }
+
+  .md-caps {
+    text-transform: uppercase;
+  }
+
+  .card {
+    border: solid thin #f5f5f5;
+    padding: 2rem 1rem;
+  }
+
+  .callout {
+    border: solid thin #f5f5f5;
+    background-color: #d6d6d6;
+    border-radius: 5px;
+    padding: 0.5rem;
+    width: auto;
+  }
+
+  .md-black {
+    font-weight: 900;
+  }
+
+  .linethrough {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+
+    &::before {
+      border-top: 2px solid #dfdfdf;
+      content: '';
+      margin: 0 auto;
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 95%;
+      z-index: -1;
+    }
+
+    span {
+      background: #fff;
+      padding: 0 15px;
+    }
+  }
+
+  .max-width-50 {
+    max-width: 50%;
+  }
+
+  table.dataTable.dtr-inline.collapsed {
+    > tbody > tr > td:first-child::before,
+    > tbody > tr > th:first-child::before {
+      background-color: #0d82fb;
+      border: none;
+      font-size: 12px;
+    }
+  }
+
+  .dataTables_filter {
+    margin-bottom: 20px;
+
+    @media screen and (max-width: 39.9375em) {
+      display: none !important;
+    }
+  }
+</style>
