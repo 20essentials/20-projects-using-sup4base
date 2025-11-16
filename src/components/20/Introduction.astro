@@ -1,3 +1,7 @@
+---
+import ButtonOpenModal from './ButtonOpenModal.astro';
+---
+
 <svg
   id='game'
   xmlns='http://www.w3.org/2000/svg'
@@ -22,7 +26,7 @@
       <polygon fill='#88ce02' points='2 -3 -4 -3 -1 0 -4 3 2 3 5 0'></polygon>
     </g>
   </defs>
-  <g id='target' transform='scale(8)' transform-origin='900 250'>
+  <g id='target' transform='scale(15)' transform-origin='900 250'>
     <path
       fill='#FFF'
       d='M924.2,274.2c-21.5,21.5-45.9,19.9-52,3.2c-4.4-12.1,2.4-29.2,14.2-41c11.8-11.8,29-18.6,41-14.2 C944.1,228.3,945.7,252.8,924.2,274.2z'
@@ -132,6 +136,8 @@
     ></path>
   </g>
 </svg>
+
+<ButtonOpenModal />
 
 <style is:global>
   *,

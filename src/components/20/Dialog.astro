@@ -1,0 +1,42 @@
+---
+import { supabase } from '@/lib/supabase';
+
+let { data: leaderboard, error } = await supabase
+  .from('project_20_leaderboard')
+  .select('*')
+  .order('points', { ascending: false });
+
+if (error) {
+  console.error('Error fetching leaderboard:', error);
+  leaderboard = [];
+}
+---
+
+<dialog class='am-dialog'>
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th class='text-center'>Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        leaderboard?.map(user => (
+          <tr>
+            <td>
+              <div class='user-info'>
+                <img
+                  src={user.profile_image || '/default-avatar.png'}
+                  alt={user.username}
+                />
+                {user.username}
+              </div>
+            </td>
+            <td class='text-center points'>{user.points}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</dialog>
