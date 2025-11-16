@@ -17,6 +17,7 @@
     "@types/react-dom": "^19.2.2",
     "@zumer/snapdom": "^1.9.14",
     "astro": "5.13.5",
+    "gsap": "3.13.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tweakpane": "^4.0.5",
