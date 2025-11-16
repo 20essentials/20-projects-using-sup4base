@@ -5,6 +5,15 @@ CREATE TABLE project_20_leaderboard (
   profile_image text
 );
 
+create function increment_points(user_id uuid, increment_by int)
+returns void as $$
+begin
+  update project_20_leaderboard
+  set points = points + increment_by
+  where id = user_id;
+end;
+$$ language plpgsql;
+
 -- Habilitar Row Level Security
 ALTER TABLE project_20_leaderboard ENABLE ROW LEVEL SECURITY;
 

@@ -1,5 +1,5 @@
 ---
-import Dialog from "./Dialog.astro";
+import Dialog from './Dialog.astro';
 ---
 
 <button class='am-your-button'>
@@ -173,17 +173,58 @@ import Dialog from "./Dialog.astro";
 </style>
 
 <script>
-  const $modal = document.querySelector('.am-dialog') as HTMLDialogElement;
+  import { supabase } from '@/lib/supabase';
 
-  document.addEventListener('click', e => {
+  const $modal = document.querySelector('.am-dialog') as HTMLDialogElement;
+  const $tbody = $modal.querySelector('tbody') as HTMLTableSectionElement;
+
+  document.addEventListener('click', async e => {
     const target = e.target as HTMLElement;
+
+    // Abrir modal y actualizar leaderboard
     if (
       target.matches('.am-your-button') ||
       target.matches('.am-your-button *')
     ) {
+      let { data: leaderboard, error } = await supabase
+        .from('project_20_leaderboard')
+        .select('*')
+        .order('points', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching leaderboard:', error);
+        leaderboard = [];
+      }
+
+      // Limpiar contenido previo
+      $tbody.innerHTML = '';
+
+      // Crear filas dinámicamente
+      leaderboard?.forEach(user => {
+        const tr = document.createElement('tr');
+
+        const tdUser = document.createElement('td');
+        tdUser.innerHTML = `
+        <div class='user-info'>
+          <img src='${user.profile_image || '/default-avatar.png'}' alt='${user.username}' />
+          ${user.username}
+        </div>
+      `;
+
+        const tdPoints = document.createElement('td');
+        tdPoints.className = 'text-center points';
+        tdPoints.textContent = user.points?.toString() || '0';
+
+        tr.appendChild(tdUser);
+        tr.appendChild(tdPoints);
+        $tbody.appendChild(tr);
+      });
+
       $modal.showModal();
       return;
     }
+
+    // Cerrar modal si se hace click fuera del contenido
     if (target.matches('dialog')) {
       $modal.close();
       return;
