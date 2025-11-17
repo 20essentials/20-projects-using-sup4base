@@ -1,10 +1,16 @@
 ---
+import CodeButton from '../global-components/CodeButton.astro';
 import LogoutButton from './LogoutButton.astro';
 ---
 
 <h1>You are Login</h1>
 
 <LogoutButton />
+<CodeButton
+  bottom={true}
+  right={false}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/13/login.astro'
+/>
 
 <style>
   body {

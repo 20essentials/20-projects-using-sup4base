@@ -2,6 +2,7 @@
 import { baseUrl } from '@/utils/functions';
 import DownloadButton from './DownloadButton.astro';
 import UploadToStorage from './UploadToStorage.astro';
+import CodeButton from '../global-components/CodeButton.astro';
 
 let personaBgImage = `url(${baseUrl('/assets/wanted.avif')})`;
 let personName = 'Midudev';
@@ -39,6 +40,12 @@ let personaPrice = '30,000,000,000';
   <UploadToStorage />
   <DownloadButton />
 </article>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/08/Introduction.astro'
+/>
 
 <script>
   import { supabase } from '@/lib/supabase';

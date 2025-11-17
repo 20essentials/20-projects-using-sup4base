@@ -1,6 +1,12 @@
 ---
+import CodeButton from '../global-components/CodeButton.astro';
 import { ContainerProfileCard } from './ContainerProfileCard';
 ---
 
 <!-- <App client:load  /> -->
 <ContainerProfileCard client:only='react' />
+<CodeButton
+  bottom={true}
+  right={false}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/12/ContainerProfileCard.tsx'
+/>

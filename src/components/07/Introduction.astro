@@ -1,3 +1,7 @@
+---
+import CodeButton from "../global-components/CodeButton.astro";
+---
+
 <main class='container'>
   <header>
     <button>File</button>
@@ -77,6 +81,12 @@
     </aside>
   </footer>
 </main>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/07/Introduction.astro'
+/>
 
 <style is:global>
   body {
