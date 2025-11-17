@@ -1,5 +1,6 @@
 ---
 import { baseUrl } from '@/utils/functions';
+import CodeButton from '../global-components/CodeButton.astro';
 ---
 
 <div class='container'>
@@ -55,6 +56,12 @@ import { baseUrl } from '@/utils/functions';
   Imagine that these two tables are on two different pages. When you update one
   table, the other table receives the changes thanks to a PostgreSQL trigger
 </aside>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/14/Introduction.astro'
+/>
 
 <script>
   import { $ } from '@/utils/functions';

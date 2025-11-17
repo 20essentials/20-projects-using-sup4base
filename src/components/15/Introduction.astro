@@ -1,5 +1,6 @@
 ---
 import { baseUrl } from '@/utils/functions';
+import CodeButton from '../global-components/CodeButton.astro';
 ---
 
 <div id='myDiv'>
@@ -15,6 +16,12 @@ import { baseUrl } from '@/utils/functions';
   <p>This</p>
   <p>Div</p>
 </div>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/15/Introduction.astro'
+/>
 
 <style>
   *,

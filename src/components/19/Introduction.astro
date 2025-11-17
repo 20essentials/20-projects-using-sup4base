@@ -1,5 +1,6 @@
 ---
 import { supabase } from '@/lib/supabase';
+import CodeButton from '../global-components/CodeButton.astro';
 
 type Weekday = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
 
@@ -71,6 +72,12 @@ const rows: CombinedRow[] = hoursList.map(hours => {
     </table>
   </div>
 </section>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/19/Introduction.astro'
+/>
 
 <style is:global>
   @layer base, demo, table;

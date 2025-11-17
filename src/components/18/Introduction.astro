@@ -1,3 +1,7 @@
+---
+import CodeButton from "../global-components/CodeButton.astro";
+---
+
 <aside class='container-searchs'>
   <section class='top'></section>
   <form class='bottom am-form'>
@@ -11,6 +15,12 @@
     <input type='submit' class='send-search' value='Search' />
   </form>
 </aside>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/18/Introduction.astro'
+/>
 
 <style is:global>
   * {

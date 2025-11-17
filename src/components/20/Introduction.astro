@@ -1,4 +1,5 @@
 ---
+import CodeButton from '../global-components/CodeButton.astro';
 import ButtonOpenModal from './ButtonOpenModal.astro';
 ---
 
@@ -138,6 +139,12 @@ import ButtonOpenModal from './ButtonOpenModal.astro';
 </svg>
 
 <ButtonOpenModal />
+
+<CodeButton
+  bottom={false}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/20/script.ts'
+/>
 
 <style is:global>
   *,
