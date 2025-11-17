@@ -1,4 +1,5 @@
 ---
+import CodeButton from '@/components/global-components/CodeButton.astro';
 import Layout from '@/layouts/Layout.astro';
 ---
 
@@ -24,12 +25,18 @@ import Layout from '@/layouts/Layout.astro';
       <p id='empty-msg' class='message'>No tienes tareas aún.</p>
     </main>
   </aside>
+
+  <CodeButton
+    bottom={true}
+    right={true}
+    href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/02/project-02-github-auth-and-email.astro'
+  />
 </Layout>
 
 <script>
   import { supabase, type UserType } from '@/lib/supabase';
   import { $ } from '@/utils/functions';
-  import { PATH} from '@/pages/02/paths'
+  import { PATH } from '@/pages/02/paths';
   const logoutBtn = $<HTMLButtonElement>('#logout-btn');
   const todoForm = $<HTMLFormElement>('#todo-form');
   const todoInput = $<HTMLInputElement>('#todo-input');
@@ -38,14 +45,13 @@ import Layout from '@/layouts/Layout.astro';
 
   let user: UserType | null = null;
   let todos: { id: string; title: string; completed: boolean }[] = [];
- 
 
   document.addEventListener('DOMContentLoaded', async () => {
     const { data: sessionData, error: sessionError } =
       await supabase.auth.getSession();
 
     if (sessionError || !sessionData.session) {
-      window.location.href = PATH.LOGIN  
+      window.location.href = PATH.LOGIN;
       return;
     }
 
@@ -86,7 +92,7 @@ import Layout from '@/layouts/Layout.astro';
       .from('todos')
       .select('*')
       .eq('user_id', user?.id)
-      .order('completed', { ascending: true }) 
+      .order('completed', { ascending: true })
       .order('created_at', { ascending: true });
 
     if (!error) {
@@ -172,7 +178,8 @@ import Layout from '@/layouts/Layout.astro';
 
   body {
     font-family: system-ui, sans-serif;
-    background: #f4f4f4;
+    background-image: url('/assets/project-2-bg.avif');
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -186,7 +193,6 @@ import Layout from '@/layouts/Layout.astro';
     color: red;
   }
 
-  /* === Estilos para la página de tareas (index.html) === */
   .todos-page {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f9fafb;

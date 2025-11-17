@@ -23,8 +23,8 @@ const tasks = (data ?? []) as Task[];
     <br />
 
     <form id='taskForm'>
-      <input type='text' id='taskInput' placeholder='Nueva tarea...' />
-      <button type='submit'>Agregar</button>
+      <input type='text' id='taskInput' placeholder='New task...' />
+      <button type='submit'>Add</button>
     </form>
 
     <form id='taskList'>
@@ -55,7 +55,10 @@ const tasks = (data ?? []) as Task[];
 
 <style>
   body {
-    background-color: #222;
+    background-image: url('/assets/project-1-bg.avif');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
   }
 
   html {
