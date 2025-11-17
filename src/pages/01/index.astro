@@ -1,4 +1,5 @@
 ---
+import CodeButton from '@/components/global-components/CodeButton.astro';
 import Layout from '@/layouts/Layout.astro';
 import { supabase } from '@/lib/supabase';
 
@@ -44,6 +45,12 @@ const tasks = (data ?? []) as Task[];
       }
     </form>
   </section>
+
+  <CodeButton
+    bottom={true}
+    right={true}
+    href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/01/index.astro'
+  />
 </Layout>
 
 <style>
@@ -85,8 +92,6 @@ const tasks = (data ?? []) as Task[];
   }
 </style>
 
-
-
 <style is:global>
   .am-task.am-done {
     text-decoration: line-through;
@@ -116,11 +121,11 @@ const tasks = (data ?? []) as Task[];
       return;
     }
 
-    const newTask = insertedData[0]; // Aquí tienes id, title, done correctos
+    const newTask = insertedData[0];
     const taskList = $('#taskList');
     const newLabel = document.createElement('label');
     newLabel.className = 'am-task';
-    newLabel.dataset.id = String(newTask.id); // <-- id real
+    newLabel.dataset.id = String(newTask.id);
     newLabel.innerHTML = `
   ${newTask.title}
   <input class="am-checkbox-of-a-task" type="checkbox" />

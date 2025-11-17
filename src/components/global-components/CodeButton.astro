@@ -7,10 +7,10 @@ interface Props {
 }
 
 const { bottom = false, right = false, otherClassname = '', href } = Astro.props;
-const buttonClassname = `${bottom ? 'bottom' : 'top'} ${right ? 'right' : 'left'} ${otherClassname}`;
+const buttonClassname = `button ${bottom ? 'bottom' : 'top'} ${right ? 'right' : 'left'} ${otherClassname}`;
 ---
 
-<a class='button' style={buttonClassname} href={href} target='_blank'>
+<a class={buttonClassname} href={href} target='_blank'>
   <span class='bracket left'>❴</span>
   <span class='text'>Code</span>
   <span class='bracket right'>❵</span>
@@ -31,7 +31,7 @@ const buttonClassname = `${bottom ? 'bottom' : 'top'} ${right ? 'right' : 'left'
     cursor: pointer;
     transition: all 0.3s;
     overflow: hidden;
-    position: absolute;
+    position: fixed;
     z-index: 900;
 
     &.right {
