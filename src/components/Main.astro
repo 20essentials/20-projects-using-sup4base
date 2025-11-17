@@ -1,4 +1,7 @@
 ---
+import Background from './global-components/Background.astro';
+import Titulo from './global-components/Titulo.astro';
+
 const array_of_projects = [
   {
     title: 'Global Todo List',
@@ -79,9 +82,11 @@ const array_of_projects = [
   {
     title: 'Leaderboard - Bow and Arrow',
     href: '20/'
-  },
+  }
 ];
 ---
+
+<Background />
 
 <section class='container-links'>
   {
@@ -91,11 +96,46 @@ const array_of_projects = [
   }
 </section>
 
+<Titulo />
+
 <style>
+  body {
+    min-height: 100vh;
+    background-color: #000;
+  }
+
   .container-links {
     display: flex;
     flex-direction: column;
     gap: 1vmax;
+    background-color: #fff1;
     padding: 1vmax;
+    width: fit-content;
+    position: relative;
+    min-height: 100vh;
+    place-content: center;
+    pointer-events: auto;
+    z-index: 5;
+  }
+
+  a {
+    color: #3ecf8e;
+    text-decoration: none;
+    transition:
+      color 0.2s ease,
+      text-shadow 0.2s ease;
+  }
+
+  a:visited {
+    color: #2da56f;
+  }
+
+  a:hover {
+    color: #3ecf8e;
+    text-shadow: 0 0 6px rgba(62, 207, 142, 0.6);
+  }
+
+  a:active {
+    color: #1b7c52;
   }
 </style>
