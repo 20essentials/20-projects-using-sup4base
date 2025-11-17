@@ -2,8 +2,16 @@
   --gradient: linear-gradient(to bottom, #00f, transparent);
 }
 
+@font-face {
+  font-family: 'Geist';
+  src: url('/assets/Geist.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
 /* @font-face {
-  font-family: 'AnotherDanger';
+  font-family: 'Geist';
   src: url('/assets/AnotherDanger.otf') format('opentype');
   font-weight: normal;
   font-style: normal;

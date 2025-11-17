@@ -22,10 +22,10 @@
     bottom: 1vmax;
     right: 1vmax;
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: 'Geist', Arial, sans-serif;
     text-align: center;
     pointer-events: none;
-    font-size: 1rem;
+    font-size: 1vmax;
   }
 </style>
 
@@ -34,12 +34,14 @@
   const instruction = document.querySelector('.instruction') as HTMLElement;
   const ctx = canvas.getContext('2d')!;
   const colors = [
-    '#FF3F8E',
-    '#04C2C9',
-    '#2E55C1',
-    '#F9D423',
-    '#00ff00',
-    '#ff00ff'
+    // Colores claros
+    '#A3FFE0', // verde pastel eléctrico
+    '#BDFDF4', // turquesa claro
+    '#FFFFFF', // blanco puro
+    // Colores oscuros
+    '#00D68F', // verde brillante
+    '#00875A', // verde oscuro
+    '#005F3D' // verde profundo
   ];
 
   interface Vec2 {

@@ -116,6 +116,12 @@ const array_of_projects = [
     place-content: center;
     pointer-events: auto;
     z-index: 5;
+
+      @media (width <= 1111px) and (orientation: portrait) {
+        width: 100%;
+        text-align: center;
+        background-color: transparent;
+      }
   }
 
   a {
@@ -124,6 +130,8 @@ const array_of_projects = [
     transition:
       color 0.2s ease,
       text-shadow 0.2s ease;
+    font-size: 0.9vmax;
+    font-family: 'Geist';
   }
 
   a:visited {
@@ -132,7 +140,7 @@ const array_of_projects = [
 
   a:hover {
     color: #3ecf8e;
-    text-shadow: 0 0 6px rgba(62, 207, 142, 0.6);
+    text-shadow: 0 0 0.1vmax rgba(62, 207, 142, 0.6);
   }
 
   a:active {
