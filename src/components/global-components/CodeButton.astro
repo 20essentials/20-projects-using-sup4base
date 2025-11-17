@@ -1,0 +1,73 @@
+---
+interface Props {
+  bottom: boolean;
+  right: boolean;
+  otherClassname?: string;
+  href: string;
+}
+
+const { bottom = false, right = false, otherClassname = '', href } = Astro.props;
+const buttonClassname = `${bottom ? 'bottom' : 'top'} ${right ? 'right' : 'left'} ${otherClassname}`;
+---
+
+<a class='button' style={buttonClassname} href={href} target='_blank'>
+  <span class='bracket left'>❴</span>
+  <span class='text'>Code</span>
+  <span class='bracket right'>❵</span>
+</a>
+
+<style>
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 45px;
+    width: 45px;
+    text-decoration: none;
+    border: none;
+    border-radius: 10px;
+    background-color: black;
+    cursor: pointer;
+    transition: all 0.3s;
+    overflow: hidden;
+    position: absolute;
+    z-index: 900;
+
+    &.right {
+      right: 2vmax;
+    }
+
+    &.left {
+      left: 2vmax;
+    }
+
+    &.bottom {
+      bottom: 2vmax;
+    }
+
+    &.top {
+      top: 2vmax;
+    }
+  }
+
+  .bracket {
+    font-size: 18px;
+    transition: all 0.3s;
+    color: rgb(182, 104, 255);
+  }
+  .text {
+    font-size: 15px;
+    width: 0;
+    transform: scale(0);
+    transition: all 0.3s;
+    color: white;
+  }
+  .button:hover {
+    width: 100px;
+  }
+  .button:hover .text {
+    transform: scale(1);
+    width: 40px;
+  }
+</style>
