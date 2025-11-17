@@ -1,9 +1,19 @@
+---
+import CodeButton from '../global-components/CodeButton.astro';
+---
+
 <div class='container-users'>
   <h3>Usuarios online 👥</h3>
   <ul id='users-list'></ul>
   <h3>Actividad</h3>
   <ul id='messages-list'></ul>
 </div>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/06/Introduction.astro'
+/>
 
 <style is:global>
   body {
@@ -49,7 +59,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    min-height: 42px; 
+    min-height: 42px;
     transition:
       transform 0.2s,
       background 0.2s;
@@ -75,32 +85,14 @@
 <script>
   import { supabase } from '@/lib/supabase';
   import { $, baseUrl } from '@/utils/functions';
+  const avatarCache = new Map<string, string>(); // urlGoogle -> blobURL
 
   const channel = supabase.channel('room1');
   const usersList = $<HTMLUListElement>('#users-list');
   const messagesList = $<HTMLUListElement>('#messages-list');
+  const defaultUserImage = baseUrl('/assets/userDefault.png');
 
-  /* function renderUsers() {
-    const state = channel.presenceState();
-    const users = Object.values(state).flat() as {
-      avatar_url: string;
-      name: string;
-      presence_ref: string;
-    }[];
-    usersList.innerHTML = users
-      .map(
-        u => `
-      <li>
-        <img src="${u.avatar_url || baseUrl('/assets/userDefault.png')}" alt="${u.name}">
-        <span>${u.name}</span>
-      </li>
-    `
-      )
-      .join('');
-  }
- */
-
-  function renderUsers() {
+  async function renderUsers() {
     const state = channel.presenceState();
     const users = Object.values(state).flat() as {
       avatar_url: string;
@@ -108,7 +100,7 @@
       presence_ref: string;
     }[];
 
-    users.forEach(u => {
+    for (const u of users) {
       const existingLi = Array.from(usersList.children).find(
         li => li.getAttribute('data-presence-ref') === u.presence_ref
       ) as HTMLLIElement | undefined;
@@ -121,8 +113,14 @@
         li.setAttribute('data-presence-ref', u.presence_ref);
 
         const img = document.createElement('img');
-        img.src = u.avatar_url || baseUrl('/assets/userDefault.png');
+
+        const blobUrl = await getCachedBlobUrl(u.avatar_url);
+        img.src = blobUrl;
+
         img.alt = u.name;
+        img.onerror = () => {
+          img.src = defaultUserImage;
+        };
 
         const span = document.createElement('span');
         span.textContent = u.name;
@@ -131,9 +129,8 @@
         li.appendChild(span);
         usersList.appendChild(li);
       }
-    });
+    }
 
-    // eliminar <li> de usuarios que ya no están
     const currentRefs = users.map(u => u.presence_ref);
     Array.from(usersList.children).forEach(li => {
       const liRef = li.getAttribute('data-presence-ref');
@@ -168,7 +165,7 @@
       const { data } = await supabase.auth.getUser();
 
       let full_name = randomName;
-      let avatar_url = baseUrl('/assets/userDefault.png');
+      let avatar_url = defaultUserImage;
 
       const identities = data?.user?.identities ?? [];
       const googleProvider = identities.find(i => i.provider === 'google');
@@ -191,4 +188,24 @@
     channel.untrack();
     channel.unsubscribe();
   });
+
+  async function getCachedBlobUrl(url: string) {
+    if (avatarCache.has(url)) {
+      return avatarCache.get(url)!;
+    }
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Fail fetch');
+
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      avatarCache.set(url, blobUrl); // <-- cachearlo
+
+      return blobUrl;
+    } catch {
+      return defaultUserImage;
+    }
+  }
 </script>

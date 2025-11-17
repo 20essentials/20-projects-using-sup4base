@@ -1,3 +1,7 @@
+---
+import CodeButton from '../global-components/CodeButton.astro';
+---
+
 <div id='Ticket'>
   <div class='after'></div>
   <div class='before'></div>
@@ -183,6 +187,12 @@
   </label>
 </div>
 <div class='hint'>CLICK TO FLIP</div>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/03/login.astro'
+/>
 
 <style>
   .hint {
