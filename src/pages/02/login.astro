@@ -27,31 +27,46 @@ import '@/components/02/authPage.css';
 </Layout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
-  import { $, baseUrl } from '@/utils/functions';
-  import { PATH } from '@/pages/02/paths';
+ import { supabase } from '@/lib/supabase';
+import { $, baseUrl } from '@/utils/functions';
+import { PATH } from '@/pages/02/paths';
+import { z } from 'zod';
 
-  const message = $<HTMLParagraphElement>('#message');
-  const $email = $<HTMLInputElement>('#email');
-  const $password = $<HTMLInputElement>('#password');
-  const loginForm = $<HTMLFormElement>('#login-form');
+const message = $<HTMLParagraphElement>('#message');
+const $email = $<HTMLInputElement>('#email');
+const $password = $<HTMLInputElement>('#password');
+const loginForm = $<HTMLFormElement>('#login-form');
 
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = $email.value.trim();
-    const password = $password.value;
+const loginSchema = z.object({
+  email: z.email("El email no es válido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres")
+});
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+loginForm.addEventListener('submit', async e => {
+  e.preventDefault();
 
-    if (error) {
-      message.textContent = error.message;
-    } else {
-      window.location.href = PATH.INDEX;
-    }
-  });
+  const formData = {
+    email: $email.value.trim(),
+    password: $password.value
+  };
+
+  // 🔍 Validación con Zod
+  const parsed = loginSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    message.textContent = parsed.error.issues[0].message;
+    return;
+  }
+
+  // 👇 Si pasa validación, hacemos login
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+
+  if (error) {
+    message.textContent = error.message;
+  } else {
+    window.location.href = PATH.INDEX;
+  }
+});
 
   const githubLoginBtn = document.getElementById('github-login');
 

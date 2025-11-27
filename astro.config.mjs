@@ -25,12 +25,12 @@ export default defineConfig({
       })
     }
   },
-  // base: '/project-1219/',
 
   //Localhost
+  // site: 'http://localhost:4321/',
+
   //Deploy normal project
   site: 'https://20-projects-using-sup4base.vercel.app/',
-  // site: 'http://localhost:4321/',
 
   adapter: vercel(),
   integrations: [react()]
