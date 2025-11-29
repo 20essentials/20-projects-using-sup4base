@@ -27,46 +27,46 @@ import '@/components/02/authPage.css';
 </Layout>
 
 <script>
- import { supabase } from '@/lib/supabase';
-import { $, baseUrl } from '@/utils/functions';
-import { PATH } from '@/pages/02/paths';
-import { z } from 'zod';
+  import { supabase } from '@/lib/supabase';
+  import { $, baseUrl } from '@/utils/functions';
+  import { PATH } from '@/pages/02/paths';
+  import { z } from 'zod';
 
-const message = $<HTMLParagraphElement>('#message');
-const $email = $<HTMLInputElement>('#email');
-const $password = $<HTMLInputElement>('#password');
-const loginForm = $<HTMLFormElement>('#login-form');
+  const message = $<HTMLParagraphElement>('#message');
+  const $email = $<HTMLInputElement>('#email');
+  const $password = $<HTMLInputElement>('#password');
+  const loginForm = $<HTMLFormElement>('#login-form');
 
-const loginSchema = z.object({
-  email: z.email("El email no es válido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres")
-});
+  const loginSchema = z.object({
+    email: z.email('El email no es válido'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres')
+  });
 
-loginForm.addEventListener('submit', async e => {
-  e.preventDefault();
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
 
-  const formData = {
-    email: $email.value.trim(),
-    password: $password.value
-  };
+    const formData = {
+      email: $email.value.trim(),
+      password: $password.value
+    };
 
-  // 🔍 Validación con Zod
-  const parsed = loginSchema.safeParse(formData);
+    // 🔍 Validación con Zod
+    const parsed = loginSchema.safeParse(formData);
 
-  if (!parsed.success) {
-    message.textContent = parsed.error.issues[0].message;
-    return;
-  }
+    if (!parsed.success) {
+      message.textContent = parsed.error.issues[0].message;
+      return;
+    }
 
-  // 👇 Si pasa validación, hacemos login
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+    // 👇 Si pasa validación, hacemos login
+    const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
-  if (error) {
-    message.textContent = error.message;
-  } else {
-    window.location.href = PATH.INDEX;
-  }
-});
+    if (error) {
+      message.textContent = error.message;
+    } else {
+      window.location.href = PATH.INDEX;
+    }
+  });
 
   const githubLoginBtn = document.getElementById('github-login');
 

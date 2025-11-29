@@ -61,6 +61,16 @@ const tasks = (data ?? []) as Task[];
     min-height: 100vh;
   }
 
+  button[type='submit'] {
+    background-color: #fff8;
+    padding: 0.6vmax 1vmax;
+    color: #111;
+
+    &:active {
+      opacity: 0.5;
+    }
+  }
+
   html {
     color-scheme: dark light;
   }
@@ -79,6 +89,7 @@ const tasks = (data ?? []) as Task[];
     flex: 1;
     padding: 0.5rem;
   }
+
   #taskList {
     list-style: none;
     padding: 0;
@@ -105,6 +116,18 @@ const tasks = (data ?? []) as Task[];
 <script>
   import { supabase } from '@/lib/supabase';
   import { $ } from '@/utils/functions';
+  import { z } from 'zod';
+
+  const TaskSchema = z.object({
+    title: z.string().min(1),
+    done: z.boolean()
+  });
+
+  const ReturnedTaskSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    done: z.boolean()
+  });
 
   const form = $<HTMLFormElement>('#taskForm');
   const input = $<HTMLInputElement>('#taskInput');
@@ -112,38 +135,43 @@ const tasks = (data ?? []) as Task[];
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const title = input.value.trim();
-    if (!title) return;
+
+    const parsed = TaskSchema.safeParse({ title, done: false });
+    if (!parsed.success) return;
 
     const { data: insertedData, error } = await supabase
       .from('project_01_tasks')
-      .insert([{ title, done: false }])
+      .insert([parsed.data])
       .select('*');
 
-    if (error) {
-      console.error('Error al insertar tarea:', error.message);
-      return;
-    }
+    if (error) return;
 
-    const newTask = insertedData[0];
+    const validated = ReturnedTaskSchema.safeParse(insertedData[0]);
+    if (!validated.success) return;
+
+    const newTask = validated.data;
     const taskList = $('#taskList');
     const newLabel = document.createElement('label');
     newLabel.className = 'am-task';
     newLabel.dataset.id = String(newTask.id);
     newLabel.innerHTML = `
-  ${newTask.title}
-  <input class="am-checkbox-of-a-task" type="checkbox" />
-`;
+      ${newTask.title}
+      <input class="am-checkbox-of-a-task" type="checkbox" />
+    `;
     taskList.prepend(newLabel);
     input.value = '';
   });
 
   document.addEventListener('change', async e => {
     e.preventDefault();
-    const target = e.target as HTMLInputElement;
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
     if (!target.matches('.am-checkbox-of-a-task')) return;
 
     const done = target.checked;
-    const labelElement = target.closest('.am-task') as HTMLElement;
+    const labelElement = target.closest('.am-task');
+    if (!labelElement) return;
+
     const idTask = Number(labelElement.getAttribute('data-id') ?? '');
 
     const { error } = await supabase
@@ -152,7 +180,6 @@ const tasks = (data ?? []) as Task[];
       .eq('id', idTask);
 
     if (error) {
-      console.error('Error al actualizar tarea:', error.message);
       target.checked = !done;
       return;
     }
