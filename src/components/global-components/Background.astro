@@ -26,44 +26,41 @@
     text-align: center;
     pointer-events: none;
     font-size: 1vmax;
+
+    @media (width <= 1111px) { 
+      display: none;
+    }
   }
 </style>
 
 <script>
-  const canvas = document.getElementById('confettiCanvas') as HTMLCanvasElement;
-  const instruction = document.querySelector('.instruction') as HTMLElement;
-  const ctx = canvas.getContext('2d')!;
+  const canvas = document.getElementById('confettiCanvas');
+  const instruction = document.querySelector('.instruction');
+  const ctx = canvas.getContext('2d');
+
   const colors = [
-    // Colores claros
-    '#A3FFE0', // verde pastel eléctrico
-    '#BDFDF4', // turquesa claro
-    '#FFFFFF', // blanco puro
-    // Colores oscuros
-    '#00D68F', // verde brillante
-    '#00875A', // verde oscuro
-    '#005F3D' // verde profundo
+    '#A3FFE0',
+    '#BDFDF4',
+    '#FFFFFF',
+    '#00D68F',
+    '#00875A',
+    '#005F3D'
   ];
 
-  interface Vec2 {
-    x: number;
-    y: number;
-  }
-
-  let particles: Particle[] = [];
-  let mousePos: Vec2 = { x: 0, y: 0 };
+  let particles = [];
+  let mousePos = { x: 0, y: 0 };
   let isExploding = false;
 
   class Particle {
-    private speedX = (Math.random() - 0.5) * 8;
-    private speedY = (Math.random() - 0.5) * 8;
-
-    constructor(
-      public x: number,
-      public y: number,
-      public size = Math.random() * 5 + 2,
-      public color = colors[Math.floor(Math.random() * colors.length)],
-      public life = 100
-    ) {}
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = Math.random() * 5 + 2;
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.life = 100;
+      this.speedX = (Math.random() - 0.5) * 8;
+      this.speedY = (Math.random() - 0.5) * 8;
+    }
 
     update() {
       this.x += this.speedX;
@@ -84,8 +81,10 @@
     canvas.height = window.innerHeight;
   };
 
-  const createExplosion = (x: number, y: number) => {
-    for (let i = 0; i < 50; i++) particles.push(new Particle(x, y));
+  const createExplosion = (x, y) => {
+    for (let i = 0; i < 50; i++) {
+      particles.push(new Particle(x, y));
+    }
   };
 
   const animate = () => {
@@ -102,8 +101,9 @@
     requestAnimationFrame(animate);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    mousePos = { x: e.clientX, y: e.clientY };
+  const setPointerPosition = (x, y) => {
+    mousePos.x = x;
+    mousePos.y = y;
   };
 
   const animateInstruction = () => {
@@ -129,7 +129,26 @@
   animateInstruction();
 
   window.addEventListener('resize', resizeCanvas);
-  canvas.addEventListener('mousemove', handleMouseMove);
+
+  canvas.addEventListener('mousemove', e => {
+    setPointerPosition(e.clientX, e.clientY);
+  });
+
   canvas.addEventListener('mousedown', () => (isExploding = true));
   canvas.addEventListener('mouseup', () => (isExploding = false));
+
+  canvas.addEventListener('touchstart', e => {
+    isExploding = true;
+    const touch = e.touches[0];
+    setPointerPosition(touch.clientX, touch.clientY);
+  }, { passive: false});
+
+  canvas.addEventListener('touchmove', e => {
+    const touch = e.touches[0];
+    setPointerPosition(touch.clientX, touch.clientY);
+  }, { passive: false});
+
+  canvas.addEventListener('touchend', () => {
+    isExploding = false;
+  });
 </script>

@@ -28,7 +28,7 @@ export default defineConfig({
 
   site: import.meta.env.DEV
     ? 'http://localhost:4321/'
-    : 'https://20-projects-using-sup4base.vercel.app'
+    : 'https://20-projects-using-sup4base.vercel.app',
 
   adapter: vercel(),
   integrations: [react()]
