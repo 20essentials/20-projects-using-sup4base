@@ -173,7 +173,7 @@ import Layout from '@/layouts/Layout.astro';
   import { tableName } from '@/components/03/dbLib';
   import { PATH } from '@/components/03/path';
   import { supabase } from '@/lib/supabase';
-  import { $ } from '@/utils/functions';
+  import { $, baseUrl } from '@/utils/functions';
   const $inputPassword = $<HTMLInputElement>('.inputPassword');
   const $inputEmail = $<HTMLInputElement>('.inputEmail');
   const $formRegister = $<HTMLFormElement>('.am-form-register');
@@ -187,7 +187,10 @@ import Layout from '@/layouts/Layout.astro';
 
     const { error: signUpError } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        emailRedirectTo: baseUrl(PATH.index)
+      }
     });
 
     if (signUpError) {

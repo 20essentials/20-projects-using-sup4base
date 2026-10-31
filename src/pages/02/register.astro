@@ -26,7 +26,7 @@ import { PATH } from './paths';
 
 <script>
   import { supabase } from '@/lib/supabase';
-  import { $ } from '@/utils/functions';
+  import { $, baseUrl } from '@/utils/functions';
   import { z } from 'zod';
 
   // 🎯 Esquema de validación
@@ -61,7 +61,9 @@ import { PATH } from './paths';
     }
 
     // 👇 Si pasa validación → signup en Supabase
-    const { error: signUpError } = await supabase.auth.signUp(parsed.data);
+    const { error: signUpError } = await supabase.auth.signUp(parsed.data, {
+      emailRedirectTo: baseUrl(PATH.INDEX)
+    });
 
     if (signUpError) {
       message.style.color = 'red';
