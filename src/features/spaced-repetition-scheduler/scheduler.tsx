@@ -4,31 +4,17 @@ import { supabase } from '@/lib/supabase';
 
 type Topic = {
   id: string;
-  nivel: number;
   orden: number;
   tema: string;
   streak: number;
+  fechas: string[];
   proxima_fecha: string;
 };
 
-type NivelFilter = 0 | 1 | 2 | 3;
-
 type PendingAction =
-  | { type: 'add'; nivel: number; tema: string }
+  | { type: 'add'; tema: string }
   | { type: 'mark'; id: string; tema: string }
   | null;
-
-export const LADDER = [
-  1, 4, 7, 9, 10, 12, 16, 21, 28, 30, 50, 60, 80, 90, 100, 120, 140, 150, 210,
-  250, 280, 300, 350, 450, 550, 700
-];
-
-const NIVELES: { nivel: NivelFilter; label: string }[] = [
-  { nivel: 0, label: 'Todos' },
-  { nivel: 1, label: 'CULT SMART 1' },
-  { nivel: 2, label: 'CULT SMART 2' },
-  { nivel: 3, label: 'CULT SMART 3' }
-];
 
 function isoOf(date: Date) {
   const y = date.getFullYear();
@@ -48,49 +34,45 @@ function parseIsoDate(iso: string) {
   return new Date(y, m - 1, d);
 }
 
-function shortDate(iso: string) {
-  return parseIsoDate(iso).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short'
-  });
+function shortDate(iso: string, thisYear: number) {
+  const y = Number(iso.split('-')[0]);
+  return parseIsoDate(iso).toLocaleDateString(
+    'es-ES',
+    y === thisYear
+      ? { day: '2-digit', month: 'short' }
+      : { day: '2-digit', month: 'short', year: '2-digit' }
+  );
 }
 
 function sortRows(rows: Topic[]) {
   return rows.toSorted(
-    (a, b) =>
-      a.proxima_fecha.localeCompare(b.proxima_fecha) ||
-      a.nivel - b.nivel ||
-      a.orden - b.orden
+    (a, b) => a.proxima_fecha.localeCompare(b.proxima_fecha) || a.orden - b.orden
   );
 }
 
 function rpcToMessage(raw: string) {
   if (raw.includes('WRONG_PASSWORD')) return 'Password incorrecto';
   if (raw.includes('EMPTY_TOPIC')) return 'El tema no puede estar vacío';
-  if (raw.includes('BAD_LEVEL')) return 'Nivel inválido';
   if (raw.includes('TOPIC_NOT_FOUND')) return 'Tema no encontrado';
-  if (raw.includes('duplicate key'))
-    return 'Ese tema ya existe en ese nivel';
+  if (raw.includes('ALL_REVIEWED')) return 'Ese tema ya está terminado';
+  if (raw.includes('duplicate key')) return 'Ese tema ya existe';
   return raw;
 }
 
 export const Scheduler = () => {
   const [rows, setRows] = useState<Topic[] | null>(null);
   const [loadError, setLoadError] = useState<null | string>(null);
-  const [filter, setFilter] = useState<NivelFilter>(0);
   const [pending, setPending] = useState<PendingAction>(null);
   const [password, setPassword] = useState('');
   const [actionError, setActionError] = useState<null | string>(null);
   const [working, setWorking] = useState(false);
 
   const [newTema, setNewTema] = useState('');
-  const [newNivel, setNewNivel] = useState<1 | 2 | 3>(1);
 
   async function fetchRows() {
     const { data, error } = await supabase
       .from('project_22_scheduler')
-      .select('id, nivel, orden, tema, streak, proxima_fecha')
-      .order('nivel', { ascending: true })
+      .select('id, orden, tema, streak, fechas, proxima_fecha')
       .order('orden', { ascending: true });
 
     if (error) {
@@ -106,21 +88,15 @@ export const Scheduler = () => {
 
   const today = useMemo(() => isoOf(new Date()), []);
   const tomorrow = useMemo(() => isoOf(shiftDays(new Date(), 1)), [today]);
-
-  const visible = useMemo(() => {
-    if (!rows) return [];
-    return rows.filter(r => filter === 0 || r.nivel === filter);
-  }, [rows, filter]);
+  const thisYear = new Date().getFullYear();
 
   const overview = useMemo(() => {
-    if (!rows) return { overdue: [] as Topic[], today: [] as Topic[], tomorrow: [] as Topic[] };
-    const inLevel = (r: Topic) => filter === 0 || r.nivel === filter;
+    if (!rows) return { today: [] as Topic[], tomorrow: [] as Topic[] };
     return {
-      overdue: rows.filter(r => r.proxima_fecha < today && inLevel(r)),
-      today: rows.filter(r => r.proxima_fecha === today && inLevel(r)),
-      tomorrow: rows.filter(r => r.proxima_fecha === tomorrow && inLevel(r))
+      today: rows.filter(r => r.proxima_fecha === today),
+      tomorrow: rows.filter(r => r.proxima_fecha === tomorrow)
     };
-  }, [rows, filter, today, tomorrow]);
+  }, [rows, today, tomorrow]);
 
   function openAdd() {
     if (!newTema.trim()) {
@@ -128,12 +104,12 @@ export const Scheduler = () => {
       return;
     }
     setActionError(null);
-    setPending({ type: 'add', nivel: newNivel, tema: newTema.trim() });
+    setPending({ type: 'add', tema: newTema.trim() });
     setPassword('');
   }
 
   function openMark(topic: Topic) {
-    if (pending) return;
+    if (topic.streak >= topic.fechas.length || pending) return;
     setActionError(null);
     setPending({ type: 'mark', id: topic.id, tema: topic.tema });
     setPassword('');
@@ -152,7 +128,6 @@ export const Scheduler = () => {
 
     if (pending.type === 'add') {
       const { data, error } = await supabase.rpc('scheduler_add_topic', {
-        p_nivel: pending.nivel,
         p_tema: pending.tema,
         p_pass: password
       });
@@ -182,15 +157,19 @@ export const Scheduler = () => {
   }
 
   function chipClass(iso: string, tn: string, tm: string) {
-    if (iso < tn) return 'chip overdue';
     if (iso === tn) return 'chip today';
     if (iso === tm) return 'chip tomorrow';
     return 'chip later';
   }
 
   function nextIntervalOf(topic: Topic) {
-    const index = Math.min(topic.streak, LADDER.length - 1);
-    return LADDER[index];
+    const next = topic.streak; // 0-based: el renglón que toca dentro de fechas
+    if (next < 0 || next >= topic.fechas.length - 1) return null;
+    return Math.round(
+      (parseIsoDate(topic.fechas[next + 1]).getTime() -
+        parseIsoDate(topic.fechas[next]).getTime()) /
+        86400000
+    );
   }
 
   return (
@@ -200,8 +179,8 @@ export const Scheduler = () => {
           SPACED REPETITION <span>SCHEDULER</span>
         </h1>
         <p>
-          Agenda de repasos (CULT SMART 1 / 2 / 3) · vista pública · solo tú
-          puedes editar con tu password
+          Agenda de repasos con las fechas exactas del Excel · vista pública ·
+          solo tú puedes editar con tu password
         </p>
       </header>
 
@@ -212,25 +191,6 @@ export const Scheduler = () => {
       )}
 
       <section className='overview'>
-        <div className='overdue-block'>
-          <h3>
-            Atrasados <small>({overview.overdue.length})</small>
-          </h3>
-          <div className='cells'>
-            {overview.overdue.length === 0 && <em>Nada atrasado 🎉</em>}
-            {overview.overdue.map(r => (
-              <button
-                key={r.id}
-                className='cell overdue'
-                title='Marcar como repasado'
-                onClick={() => openMark(r)}
-              >
-                {r.tema}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className='today-block'>
           <h3>
             HOY <small>({overview.today.length})</small>
@@ -266,56 +226,41 @@ export const Scheduler = () => {
       </section>
 
       <section className='agenda'>
-        <nav className='tabs'>
-          {NIVELES.map(({ nivel, label }) => (
-            <button
-              key={nivel}
-              className={filter === nivel ? 'tab active' : 'tab'}
-              onClick={() => setFilter(nivel)}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-
         <ul className='rows'>
-          {visible.map(r => (
+          {(rows ?? []).map(r => (
             <li key={r.id} className='row'>
               <span className='row-tema' title={r.tema}>
                 {r.tema}
               </span>
-              <span className='row-nivel'>CULT SMART {r.nivel}</span>
-              <span className='row-streak'>racha {r.streak}</span>
-              <span className={chipClass(r.proxima_fecha, today, tomorrow)}>
-                {shortDate(r.proxima_fecha)}
+              <span className='row-streak'>
+                racha {r.streak}/{r.fechas.length}
               </span>
-              <span className='row-next'>→ +{nextIntervalOf(r)}d</span>
-              <button
-                className='row-done'
-                onClick={() => openMark(r)}
-                title='Marcar como repasado'
-              >
-                Repasado ✓
-              </button>
+              <span className={chipClass(r.proxima_fecha, today, tomorrow)}>
+                {shortDate(r.proxima_fecha, thisYear)}
+              </span>
+              <span className='row-next'>
+                {nextIntervalOf(r) ? `→ +${nextIntervalOf(r)}d` : '→ fin'}
+              </span>
+              {r.streak >= r.fechas.length ? (
+                <span className='row-done-text'>terminado ✓</span>
+              ) : (
+                <button
+                  className='row-done'
+                  onClick={() => openMark(r)}
+                  title='Marcar como repasado'
+                >
+                  Repasado ✓
+                </button>
+              )}
             </li>
           ))}
           {!rows && !loadError && <li>Cargando…</li>}
-          {rows && visible.length === 0 && !loadError && (
-            <li>Sin temas todavía en este nivel</li>
-          )}
+          {rows && rows.length === 0 && !loadError && <li>Sin temas</li>}
         </ul>
       </section>
 
       <section className='admin-bar'>
         <div className='admin-controls'>
-          <select
-            value={newNivel}
-            onChange={e => setNewNivel(Number(e.target.value) as 1 | 2 | 3)}
-          >
-            <option value={1}>CULT SMART 1</option>
-            <option value={2}>CULT SMART 2</option>
-            <option value={3}>CULT SMART 3</option>
-          </select>
           <input
             type='text'
             placeholder='Nuevo tema, p. ej. (191) 25 RANDOM SENTENCES'
@@ -349,7 +294,7 @@ export const Scheduler = () => {
             </h3>
             <p className='modal-tema'>
               {pending.type === 'add'
-                ? `${pending.tema} → CULT SMART ${pending.nivel}`
+                ? `${pending.tema} → arranca hoy con la escala del Excel`
                 : pending.tema}
             </p>
             <input
