@@ -33,6 +33,7 @@ drop table if exists project_22_scheduler cascade;
 drop function if exists scheduler_add_topic(text, text);
 drop function if exists scheduler_add_topic(smallint, text, text);
 drop function if exists scheduler_mark_reviewed(uuid, text);
+drop function if exists scheduler_check_password(text);
 drop function if exists scheduler_ladder();
 drop function if exists scheduler_secret();
 
@@ -52,6 +53,25 @@ $$;
 
 -- Nadie puede leer la función directamente: solo las RPC de abajo la usan.
 revoke all on function scheduler_secret() from public, anon, authenticated;
+
+-- =====================================================================
+-- 1.5) RPC: VERIFICAR PASSWORD (modo admin del cliente)
+-- =====================================================================
+-- El gate del cliente pregunta la password UNA vez al entrar: si es
+-- correcta entra en modo admin y guarda la password en su sessionStorage
+-- para llamar a las demás RPC con ella. Devuelve true/false, nunca el
+-- password real.
+create or replace function scheduler_check_password(p_pass text)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select p_pass is not null and p_pass = scheduler_secret();
+$$;
+
+revoke all on function scheduler_check_password(text) from public;
+grant execute on function scheduler_check_password(text) to anon, authenticated;
 
 -- =====================================================================
 -- 2) LA ÚNICA TABLA

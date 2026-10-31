@@ -11,10 +11,7 @@ type Topic = {
   proxima_fecha: string;
 };
 
-type PendingAction =
-  | { type: 'add'; tema: string }
-  | { type: 'mark'; id: string; tema: string }
-  | null;
+const GATE_KEY = 'scheduler.admin-pass';
 
 function isoOf(date: Date) {
   const y = date.getFullYear();
@@ -69,11 +66,15 @@ function rpcToMessage(raw: string) {
 export const Scheduler = () => {
   const [rows, setRows] = useState<Topic[] | null>(null);
   const [loadError, setLoadError] = useState<null | string>(null);
-  const [pending, setPending] = useState<PendingAction>(null);
-  const [password, setPassword] = useState('');
-  const [actionError, setActionError] = useState<null | string>(null);
-  const [working, setWorking] = useState(false);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [gateOpen, setGateOpen] = useState(true);
+  const [gatePassword, setGatePassword] = useState('');
+  const [gateError, setGateError] = useState<null | string>(null);
+
+  const [working, setWorking] = useState(false);
+  const [actionError, setActionError] = useState<null | string>(null);
   const [newTema, setNewTema] = useState('');
 
   async function fetchRows() {
@@ -91,7 +92,92 @@ export const Scheduler = () => {
 
   useEffect(() => {
     fetchRows();
+
+    async function recoverAdmin() {
+      const saved = sessionStorage.getItem(GATE_KEY);
+      if (!saved) return;
+      const { data, error } = await supabase.rpc('scheduler_check_password', {
+        p_pass: saved
+      });
+      if (!error && data === true) {
+        setIsAdmin(true);
+        setAdminPassword(saved);
+        setGateOpen(false);
+      } else {
+        sessionStorage.removeItem(GATE_KEY);
+      }
+    }
+    recoverAdmin();
   }, []);
+
+  async function enterAdmin() {
+    setWorking(true);
+    setGateError(null);
+    const { data, error } = await supabase.rpc('scheduler_check_password', {
+      p_pass: gatePassword
+    });
+    if (!error && data === true) {
+      sessionStorage.setItem(GATE_KEY, gatePassword);
+      setIsAdmin(true);
+      setAdminPassword(gatePassword);
+      setGatePassword('');
+      setGateOpen(false);
+    } else {
+      setGateError('Password incorrecto');
+    }
+    setWorking(false);
+  }
+
+  function openGate() {
+    setGatePassword('');
+    setGateError(null);
+    setGateOpen(true);
+  }
+
+  function leaveAdmin() {
+    sessionStorage.removeItem(GATE_KEY);
+    setIsAdmin(false);
+    setAdminPassword('');
+  }
+
+  async function markReviewed(topic: Topic) {
+    if (working) return;
+    setWorking(true);
+    setActionError(null);
+    const { data, error } = await supabase.rpc('scheduler_mark_reviewed', {
+      p_id: topic.id,
+      p_pass: adminPassword
+    });
+    if (error) {
+      setActionError(rpcToMessage(error.message));
+    } else if (data) {
+      const updated = data as Topic;
+      setRows(prev =>
+        sortRows(prev?.map(r => (r.id === updated.id ? updated : r)) ?? [])
+      );
+    }
+    setWorking(false);
+  }
+
+  async function addTopic() {
+    if (!newTema.trim()) {
+      setActionError('Escribe el nombre del tema');
+      return;
+    }
+    setWorking(true);
+    setActionError(null);
+    const { data, error } = await supabase.rpc('scheduler_add_topic', {
+      p_tema: newTema.trim(),
+      p_pass: adminPassword
+    });
+    if (error) {
+      setActionError(rpcToMessage(error.message));
+    } else if (data) {
+      setRows(prev => sortRows([...(prev ?? []), data as Topic]));
+      setNewTema('');
+    }
+    setWorking(false);
+  }
 
   const today = useMemo(() => isoOf(new Date()), []);
   const tomorrow = useMemo(() => isoOf(shiftDays(new Date(), 1)), [today]);
@@ -104,64 +190,6 @@ export const Scheduler = () => {
       tomorrow: rows.filter(r => r.proxima_fecha === tomorrow)
     };
   }, [rows, today, tomorrow]);
-
-  function openAdd() {
-    if (!newTema.trim()) {
-      setActionError('Escribe el nombre del tema');
-      return;
-    }
-    setActionError(null);
-    setPending({ type: 'add', tema: newTema.trim() });
-    setPassword('');
-  }
-
-  function openMark(topic: Topic) {
-    if (topic.streak >= topic.fechas.length || pending) return;
-    setActionError(null);
-    setPending({ type: 'mark', id: topic.id, tema: topic.tema });
-    setPassword('');
-  }
-
-  function closeModal() {
-    setPending(null);
-    setPassword('');
-    setActionError(null);
-  }
-
-  async function confirmPending() {
-    if (!pending) return;
-    setWorking(true);
-    setActionError(null);
-
-    if (pending.type === 'add') {
-      const { data, error } = await supabase.rpc('scheduler_add_topic', {
-        p_tema: pending.tema,
-        p_pass: password
-      });
-      if (error) {
-        setActionError(rpcToMessage(error.message));
-      } else if (data) {
-        setRows(prev => sortRows([...(prev ?? []), data as Topic]));
-        setNewTema('');
-        closeModal();
-      }
-    } else {
-      const { data, error } = await supabase.rpc('scheduler_mark_reviewed', {
-        p_id: pending.id,
-        p_pass: password
-      });
-      if (error) {
-        setActionError(rpcToMessage(error.message));
-      } else if (data) {
-        const updated = data as Topic;
-        setRows(prev =>
-          sortRows(prev?.map(r => (r.id === updated.id ? updated : r)) ?? [])
-        );
-        closeModal();
-      }
-    }
-    setWorking(false);
-  }
 
   function chipClass(iso: string, tn: string, tm: string) {
     if (iso === tn) return 'chip today';
@@ -185,12 +213,25 @@ export const Scheduler = () => {
           Agenda de repasos con las fechas exactas del Excel · vista pública ·
           solo tú puedes editar con tu password
         </p>
+        {isAdmin ? (
+          <button className='badge-admin' onClick={leaveAdmin}>
+            modo admin ✓ · salir
+          </button>
+        ) : (
+          <button className='badge-guest' onClick={openGate}>
+            entrar como admin
+          </button>
+        )}
       </header>
 
       {loadError && (
         <aside className='load-error'>
           No se pudo cargar la agenda: {loadError}
         </aside>
+      )}
+
+      {actionError && !gateOpen && (
+        <aside className='load-error'>{actionError}</aside>
       )}
 
       <section className='overview'>
@@ -200,16 +241,26 @@ export const Scheduler = () => {
           </h3>
           <div className='cells'>
             {overview.today.length === 0 && <em>Libre hoy ✔</em>}
-            {overview.today.map(r => (
-              <button
-                key={r.id}
-                className='cell today'
-                title='Marcar como repasado'
-                onClick={() => openMark(r)}
-              >
-                {r.tema}
-              </button>
-            ))}
+            {overview.today.map(r =>
+              isDone(r) ? (
+                <span key={r.id} className='cell dim'>
+                  {r.tema}
+                </span>
+              ) : isAdmin ? (
+                <button
+                  key={r.id}
+                  className='cell today'
+                  title='Marcar como repasado'
+                  onClick={() => markReviewed(r)}
+                >
+                  {r.tema}
+                </button>
+              ) : (
+                <span key={r.id} className='cell today'>
+                  {r.tema}
+                </span>
+              )
+            )}
           </div>
         </div>
 
@@ -250,12 +301,15 @@ export const Scheduler = () => {
                 repaso {Math.min(r.streak + 1, r.fechas.length)}/
                 {r.fechas.length}
               </span>
-              {isDone(r) ? (
-                <span className='row-done-text'>terminado</span>
+              {isDone(r) || !isAdmin ? (
+                <span className='row-done-text'>
+                  {isDone(r) ? 'terminado' : ''}
+                </span>
               ) : (
                 <button
                   className='row-done'
-                  onClick={() => openMark(r)}
+                  disabled={working}
+                  onClick={() => markReviewed(r)}
                   title='Marcar como repasado'
                 >
                   Repasado ✓
@@ -268,58 +322,64 @@ export const Scheduler = () => {
         </ul>
       </section>
 
-      <section className='admin-bar'>
-        <div className='admin-controls'>
-          <input
-            type='text'
-            placeholder='Nuevo tema, p. ej. (191) 25 RANDOM SENTENCES'
-            value={newTema}
-            onChange={e => {
-              setNewTema(e.target.value);
-              if (actionError && !pending) setActionError(null);
-            }}
-          />
-          <button className='btn-add' onClick={openAdd}>
-            + Agregar tema
-          </button>
-        </div>
-        {!pending && actionError && (
-          <small className='admin-error'>{actionError}</small>
-        )}
-      </section>
+      {isAdmin && (
+        <section className='admin-bar'>
+          <div className='admin-controls'>
+            <input
+              type='text'
+              placeholder='Nuevo tema, p. ej. (191) 25 RANDOM SENTENCES'
+              value={newTema}
+              onChange={e => {
+                setNewTema(e.target.value);
+                if (actionError) setActionError(null);
+              }}
+            />
+            <button
+              className='btn-add'
+              disabled={working}
+              onClick={addTopic}
+            >
+              + Agregar tema
+            </button>
+          </div>
+        </section>
+      )}
 
-      {pending && (
-        <div className='modal-back' onClick={closeModal}>
+      {gateOpen && (
+        <div className='modal-back' onClick={() => setGateOpen(false)}>
           <form
             className='modal'
             onClick={e => e.stopPropagation()}
             onSubmit={e => {
               e.preventDefault();
-              confirmPending();
+              enterAdmin();
             }}
           >
-            <h3>
-              {pending.type === 'add' ? 'Agregar tema' : 'Marcar repasado'}
-            </h3>
-            <p className='modal-tema'>
-              {pending.type === 'add'
-                ? `${pending.tema} → arranca hoy con la escala del Excel`
-                : pending.tema}
+            <h3>Acceso admin</h3>
+            <p className='modal-no-auth'>
+              Con tu password marcas repasos y agregas temas. Sin ella
+              entras en modo visitante: solo mirar.
             </p>
             <input
               type='password'
               autoFocus
               placeholder='Tu password especial'
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              value={gatePassword}
+              onChange={e => {
+                setGatePassword(e.target.value);
+                if (gateError) setGateError(null);
+              }}
             />
-            {actionError && <small className='modal-error'>{actionError}</small>}
+            {gateError && <small className='modal-error'>{gateError}</small>}
             <div className='modal-actions'>
-              <button type='button' onClick={closeModal}>
-                Cancelar
+              <button type='button' onClick={() => setGateOpen(false)}>
+                Solo mirar
               </button>
-              <button type='submit' disabled={working}>
-                {working ? 'Enviando…' : 'Confirmar'}
+              <button
+                type='submit'
+                disabled={working || gatePassword.length === 0}
+              >
+                {working ? 'Comprobando…' : 'Entrar'}
               </button>
             </div>
           </form>

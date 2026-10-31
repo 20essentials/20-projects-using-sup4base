@@ -46,6 +46,32 @@ select:focus-visible {
     font-size: 0.9vmax;
     opacity: 0.75;
   }
+
+  .badge-admin,
+  .badge-guest {
+    margin-top: 0.8vmax;
+    background: transparent;
+    border: 0.12vmax solid #ffffff3d;
+    border-radius: 2vmax;
+    color: #8ff0c0;
+    padding: 0.4vmax 1.2vmax;
+    font-size: 0.85vmax;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .badge-admin {
+    background: #3ecf8e1f;
+    border-color: #3ecf8e;
+  }
+
+  .badge-guest:hover {
+    background: #ffffff14;
+    border-color: #ffffff80;
+  }
 }
 
 .load-error {
@@ -368,6 +394,13 @@ select:focus-visible {
     margin: 0;
     font-size: 0.95vmax;
     opacity: 0.8;
+  }
+
+  .modal-no-auth {
+    margin: 0;
+    font-size: 0.95vmax;
+    line-height: 1.5;
+    opacity: 0.75;
   }
 
   input {
