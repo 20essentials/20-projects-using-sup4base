@@ -164,8 +164,8 @@ select:focus-visible {
 .row {
   display: grid;
   grid-template-columns:
-    minmax(30vmax, 2.4fr) minmax(8vmax, 0.8fr)
-    minmax(8vmax, 0.9fr) minmax(6vmax, 0.6fr) minmax(10vmax, 1fr);
+    minmax(26vmax, 1fr) 9vmax minmax(9vmax, 0.7fr)
+    minmax(9vmax, 0.8fr);
   align-items: center;
   gap: 0.8vmax;
   background: #ffffff0a;
@@ -173,6 +173,9 @@ select:focus-visible {
   border-radius: 0.6vmax;
   padding: 0.6vmax 1vmax;
   font-size: 0.95vmax;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
 
   &:hover {
     background: #ffffff12;
@@ -180,20 +183,28 @@ select:focus-visible {
   }
 }
 
+.row.done {
+  opacity: 0.55;
+}
+
 .row-tema {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.row-streak {
+.row-count {
   font-size: 0.8vmax;
   opacity: 0.75;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .chip {
+  justify-self: start;
   text-align: center;
-  padding: 0.35vmax 0.6vmax;
+  padding: 0.35vmax 0.7vmax;
   border-radius: 0.4vmax;
   font-size: 0.85vmax;
   font-weight: 600;
@@ -221,13 +232,8 @@ select:focus-visible {
   }
 }
 
-.row-next {
-  font-size: 0.8vmax;
-  opacity: 0.65;
-  text-align: center;
-}
-
 .row-done {
+  justify-self: end;
   background: #3ecf8e26;
   border: 0.12vmax solid #3ecf8e;
   color: #7ef0bb;
@@ -255,6 +261,7 @@ select:focus-visible {
 }
 
 .row-done-text {
+  justify-self: end;
   font-size: 0.85vmax;
   color: #7ef0bb;
   opacity: 0.8;
@@ -438,11 +445,15 @@ select:focus-visible {
   }
 
   .row {
-    grid-template-columns: 1fr;
-    gap: 0.3vmax;
+    grid-template-columns: 1fr max-content;
+    gap: 0.4vmax;
 
-    .row-streak,
-    .row-next {
+    .row-tema {
+      grid-column: 1 / -1;
+    }
+
+    .row-count,
+    .row-done-text {
       display: none;
     }
   }

@@ -169,14 +169,10 @@ export const Scheduler = () => {
     return 'chip later';
   }
 
-  function nextIntervalOf(topic: Topic) {
-    const next = topic.streak; // 0-based: el renglón que toca dentro de fechas
-    if (next < 0 || next >= topic.fechas.length - 1) return null;
-    return Math.round(
-      (parseIsoDate(topic.fechas[next + 1]).getTime() -
-        parseIsoDate(topic.fechas[next]).getTime()) /
-        86400000
-    );
+  function dateLabel(iso: string, tn: string, tm: string) {
+    if (iso === tn) return 'hoy';
+    if (iso === tm) return 'mañana';
+    return shortDate(iso, thisYear);
   }
 
   return (
@@ -235,25 +231,27 @@ export const Scheduler = () => {
       <section className='agenda'>
         <ul className='rows'>
           {(rows ?? []).map(r => (
-            <li key={r.id} className='row'>
+            <li key={r.id} className={`row${isDone(r) ? ' done' : ''}`}>
               <span className='row-tema' title={r.tema}>
                 {r.tema}
               </span>
-              <span className='row-streak'>
-                racha {r.streak}/{r.fechas.length}
+              <span
+                className={
+                  isDone(r)
+                    ? 'chip done'
+                    : chipClass(r.proxima_fecha, today, tomorrow)
+                }
+              >
+                {isDone(r)
+                  ? '✓'
+                  : dateLabel(r.proxima_fecha, today, tomorrow)}
+              </span>
+              <span className='row-count'>
+                repaso {Math.min(r.streak + 1, r.fechas.length)}/
+                {r.fechas.length}
               </span>
               {isDone(r) ? (
-                <span className='chip done'>✓</span>
-              ) : (
-                <span className={chipClass(r.proxima_fecha, today, tomorrow)}>
-                  {shortDate(r.proxima_fecha, thisYear)}
-                </span>
-              )}
-              <span className='row-next'>
-                {nextIntervalOf(r) ? `→ +${nextIntervalOf(r)}d` : '→ fin'}
-              </span>
-              {isDone(r) ? (
-                <span className='row-done-text'>terminado ✓</span>
+                <span className='row-done-text'>terminado</span>
               ) : (
                 <button
                   className='row-done'
