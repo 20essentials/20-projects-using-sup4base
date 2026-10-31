@@ -214,6 +214,11 @@ select:focus-visible {
     color: #dfe7ec;
     border-color: #ffffff2e;
   }
+
+  &.done {
+    background: transparent;
+    color: #7ef0bb;
+  }
 }
 
 .row-next {

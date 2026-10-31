@@ -44,9 +44,16 @@ function shortDate(iso: string, thisYear: number) {
   );
 }
 
+function isDone(topic: Topic) {
+  return topic.streak >= topic.fechas.length;
+}
+
 function sortRows(rows: Topic[]) {
   return rows.toSorted(
-    (a, b) => a.proxima_fecha.localeCompare(b.proxima_fecha) || a.orden - b.orden
+    (a, b) =>
+      Number(isDone(a)) - Number(isDone(b)) ||
+      a.proxima_fecha.localeCompare(b.proxima_fecha) ||
+      a.orden - b.orden
   );
 }
 
@@ -235,13 +242,17 @@ export const Scheduler = () => {
               <span className='row-streak'>
                 racha {r.streak}/{r.fechas.length}
               </span>
-              <span className={chipClass(r.proxima_fecha, today, tomorrow)}>
-                {shortDate(r.proxima_fecha, thisYear)}
-              </span>
+              {isDone(r) ? (
+                <span className='chip done'>✓</span>
+              ) : (
+                <span className={chipClass(r.proxima_fecha, today, tomorrow)}>
+                  {shortDate(r.proxima_fecha, thisYear)}
+                </span>
+              )}
               <span className='row-next'>
                 {nextIntervalOf(r) ? `→ +${nextIntervalOf(r)}d` : '→ fin'}
               </span>
-              {r.streak >= r.fechas.length ? (
+              {isDone(r) ? (
                 <span className='row-done-text'>terminado ✓</span>
               ) : (
                 <button

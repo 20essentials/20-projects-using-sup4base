@@ -8,9 +8,11 @@
 -- cada tema tiene su lista exacta de fechas de repaso, columna a columna,
 -- donde cada columna acumula los días de su cabecera (+1, +4, +7, ...).
 -- Esas fechas (2023 - 2033) viven en la columna fechas[]: ya NO se
--- recalculan desde el día en que ejecutas el script.
--- proxima_fecha es GENERATED: siempre es fechas[streak + 1], la columna
--- siguiente del Excel a la que vas.
+-- recalculan desde el día en que ejecutas el script. Las fechas que ya
+-- pasaron cuentan como repasos completados: la racha inicial de cada tema
+-- es el número de fechas ANTERIORES al día en que ejecutas el script, así
+-- que proxima_fecha (GENERATED) sale directamente en la columna siguiente
+-- del Excel a la que vas.
 --
 -- - Lectura pública (visitas).
 -- - Marcar "Repasado" SOLO con tu password especial (validado en
@@ -18,8 +20,9 @@
 -- - Temas nuevos que agregues a mano arrancan hoy y usan la escala
 --   acumulada del CULT SMART 1 como referencia.
 -- ⚠️ Recuerda cambiar tu password en scheduler_secret() ANTES de ejecutar.
--- ⚠️ Re-ejecutar el script borra tu progreso y resetea la racha a 0
---    (proxima_fecha vuelve a ser la primera columna del Excel).
+-- ⚠️ Re-ejecutar el script borra tu progreso manual y lo reconstruye del
+--    Excel: la racha vuelve a ser "todas las fechas pasadas contadas" y
+--    proxima_fecha apunta a la primera fecha futura.
 
 -- =====================================================================
 -- 0) LIMPIEZA (idempotente: puedes re-ejecutar este script las veces
@@ -180,7 +183,9 @@ grant execute on function scheduler_add_topic(text, text) to anon, authenticated
 -- =====================================================================
 -- Cada fila = (orden, tema, streak, fechas). Las fechas son literales copiadas
 -- de public/assets/31-10-26.xlsx (hojas CULT SMART 1 / 2 / 3).
--- proxima_fecha no se inserta: la calcula la columna GENERATED (fechas[1]).
+-- proxima_fecha no se inserta: la calcula la columna GENERATED.
+-- En el paso 6) se ajusta la racha: las fechas ya pasadas del Excel son
+-- repasos técnicamente completados, no pendientes.
 insert into project_22_scheduler (orden, tema, streak, fechas)
 values
   (  1, '(1) ARTICLES', 0, array['2023-07-03','2023-07-04','2023-07-08','2023-07-15','2023-07-24','2023-08-03','2023-08-04','2023-08-08','2023-08-15','2023-08-24','2023-09-03','2023-09-04','2023-09-08','2023-09-15','2023-09-24','2023-10-04','2023-10-16','2023-11-01','2023-11-22','2023-12-20','2024-01-19','2024-02-16','2024-03-17','2024-03-29','2024-04-26','2024-06-15','2024-08-14','2024-11-12','2025-03-12','2025-05-31','2025-09-08','2026-01-06','2026-05-26','2026-10-23','2027-06-30']::date[]),
@@ -396,3 +401,14 @@ values
   (211, '(188) 25 RANDOM SENTENCES', 0, array['2026-10-02','2026-10-03','2026-10-07','2026-10-14','2026-10-23','2026-11-02','2026-11-03','2026-11-07','2026-11-14','2026-11-23','2026-12-03','2026-12-10','2026-12-24','2027-01-14','2027-02-11','2027-04-02','2027-06-21','2027-09-29','2028-01-27','2028-06-15','2028-11-12']::date[]),
   (212, '(189) 25 RANDOM SENTENCES', 0, array['2026-10-16','2026-10-17','2026-10-21','2026-10-28','2026-11-06','2026-11-16','2026-11-17','2026-11-21','2026-11-28','2026-12-07','2026-12-17','2026-12-24','2027-01-07','2027-01-28','2027-02-25','2027-04-16','2027-07-05','2027-10-13','2028-02-10','2028-06-29','2028-11-26']::date[]),
   (213, '(190) 25 RANDOM SENTENCES', 0, array['2026-10-29','2026-10-30','2026-11-03','2026-11-10','2026-11-19','2026-11-29','2026-11-30','2026-12-04','2026-12-11','2026-12-20','2026-12-30','2027-01-06','2027-01-20','2027-02-10','2027-03-10','2027-04-29','2027-07-18','2027-10-26','2028-02-23','2028-07-12','2028-12-09']::date[]);
+
+-- =====================================================================
+-- 6) PROGRESO INICIAL DEL EXCEL
+-- =====================================================================
+-- El Excel se congeló el día del export: toda fecha ANTERIOR a hoy ya se
+-- repasó. Cada tema arranca con racha = nº de fechas vencidas, así que
+-- proximaFecha cae en la PRIMERA fecha futura del Excel. Los temas con
+-- todas sus fechas pasadas quedan con racha completa (terminados).
+update project_22_scheduler
+   set streak = (select count(*) from unnest(fechas) as d where d < current_date);
+
