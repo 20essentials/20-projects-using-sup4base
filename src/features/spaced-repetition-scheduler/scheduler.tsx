@@ -44,12 +44,18 @@ function shortDate(iso: string, thisYear: number) {
 function nextGapOf(topic: Topic) {
   const here = topic.streak;
   const next = here + 1;
-  if (next >= topic.fechas.length) return null;
-  return Math.round(
-    (parseIsoDate(topic.fechas[next]).getTime() -
-      parseIsoDate(topic.fechas[here]).getTime()) /
-      86400000
-  );
+  const len = topic.fechas.length;
+  if (next < len) {
+    return Math.round(
+      (parseIsoDate(topic.fechas[next]).getTime() -
+        parseIsoDate(topic.fechas[here]).getTime()) /
+        86400000
+    );
+  }
+  if (len < 2) return null;
+  const last = new Date(parseIsoDate(topic.fechas[len - 1]).getTime());
+  const prev = parseIsoDate(topic.fechas[len - 2]).getTime();
+  return Math.round((last.getTime() - prev) / 86400000) + 50;
 }
 
 function sortRows(rows: Topic[]) {
