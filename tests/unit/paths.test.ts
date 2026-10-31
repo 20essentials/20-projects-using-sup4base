@@ -82,11 +82,11 @@ describe('home feature lists every published feature', () => {
     'src/features/home/main.astro'
   );
 
-  it('declares 20 hrefs that all resolve to real pages', () => {
+  it('declares 21 hrefs that all resolve to real pages', () => {
     const content = fs.readFileSync(mainAstro, 'utf-8');
     const hrefs = [...content.matchAll(/href: '([^']+)'/g)].map(m => m[1]);
 
-    expect(hrefs).toHaveLength(20);
+    expect(hrefs).toHaveLength(21);
     hrefs.forEach(expectRulePointsToExistingPage);
   });
 });

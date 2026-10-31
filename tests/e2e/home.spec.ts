@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-test('home page renders the index of the 20 features', async ({ page }) => {
+test('home page renders the index of the 21 features', async ({ page }) => {
   await page.goto('/');
 
   await expect(page).toHaveTitle(/20 Projects With Supabase/);
   const links = page.locator('.container-links a');
-  await expect(links).toHaveCount(20);
+  await expect(links).toHaveCount(21);
   await expect(page.locator('.container-links a').first()).toHaveText(
     '1) Global Todo List'
   );
@@ -43,10 +43,11 @@ test('home links navigate to their screaming-architecture routes', async ({
     'fulltext-websearch/',
     'partial-search/',
     'table-partitioning/',
-    'bow-arrow-leaderboard/'
+    'bow-arrow-leaderboard/',
+    'spaced-repetition-scheduler/'
   ];
 
   expect(links.map(l => l.href)).toEqual(slugs);
   expect(links[0].text).toContain('Global Todo List');
-  expect(links[19].text).toContain('Bow and Arrow');
+  expect(links[20].text).toContain('Spaced Repetition Scheduler');
 });

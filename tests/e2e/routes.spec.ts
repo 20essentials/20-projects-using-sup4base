@@ -20,7 +20,8 @@ const featureIndexes = [
   'fulltext-websearch/',
   'partial-search/',
   'table-partitioning/',
-  'bow-arrow-leaderboard/'
+  'bow-arrow-leaderboard/',
+  'spaced-repetition-scheduler/'
 ];
 
 const subPages = [
