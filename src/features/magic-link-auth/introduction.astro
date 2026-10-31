@@ -1,0 +1,25 @@
+---
+import CodeButton from '@/components/code-button.astro';
+import LogoutButton from './logout-button.astro';
+---
+
+<h1>You are Login</h1>
+
+<LogoutButton />
+<CodeButton
+  bottom={true}
+  right={false}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/13/login.astro'
+/>
+
+<style>
+  body {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    background-image: url('/assets/bg-image-project-13.avif');
+    background-size: cover;
+  }
+</style>

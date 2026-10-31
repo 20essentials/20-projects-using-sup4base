@@ -1,0 +1,12 @@
+---
+import CodeButton from '@/components/code-button.astro';
+import { App } from './app.jsx';
+---
+
+<App client:only='react' />
+<CodeButton
+  bottom={false}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/11/components/cart-modal.jsx'
+  otherClassname='top-near'
+/>

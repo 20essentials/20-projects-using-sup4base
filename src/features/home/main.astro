@@ -1,0 +1,153 @@
+---
+import Background from '@/components/background.astro';
+import Titulo from '@/components/titulo.astro';
+
+const array_of_projects = [
+  {
+    title: 'Global Todo List',
+    href: 'global-todo-list/'
+  },
+  {
+    title: 'Github Auth and Email',
+    href: 'github-auth-email/project-02-github-auth-and-email'
+  },
+  {
+    title: 'Login and Register With Email',
+    href: 'login-register-email/'
+  },
+  {
+    title: 'Login with Google',
+    href: 'login-google/'
+  },
+  {
+    title: 'Pixel Art (to practice Database)',
+    href: 'pixel-art/'
+  },
+  {
+    title: 'RealTime Active Users ',
+    href: 'realtime-active-users/'
+  },
+  {
+    title: 'Global Designs (Storage Supabase)',
+    href: 'global-designs-storage/'
+  },
+  {
+    title: 'One Piece Custom Wanted Poster',
+    href: 'one-piece-wanted-poster/'
+  },
+  {
+    title: 'Using a Remote Procedure Call (RPC)',
+    href: 'rpc-counter/'
+  },
+  {
+    title: 'Chat Broadcast Realtime (without save Data)',
+    href: 'chat-broadcast-realtime/'
+  },
+  {
+    title: 'Webhook in a DataBase',
+    href: 'database-webhook/'
+  },
+  {
+    title: 'CRUD with the API REST',
+    href: 'crud-rest-api/'
+  },
+  {
+    title: 'Magic Link Auth',
+    href: 'magic-link-auth/'
+  },
+  {
+    title: 'Using a Postgres Trigger',
+    href: 'postgres-trigger/'
+  },
+  {
+    title: 'Dragabble Element with Realtime Update',
+    href: 'draggable-realtime/'
+  },
+  {
+    title: 'Pagination of a DataBase',
+    href: 'database-pagination/'
+  },
+  {
+    title: 'FullText WebSearch',
+    href: 'fulltext-websearch/'
+  },
+  {
+    title: 'Partial Search',
+    href: 'partial-search/'
+  },
+  {
+    title: 'Table partitioning',
+    href: 'table-partitioning/'
+  },
+  {
+    title: 'Leaderboard - Bow and Arrow',
+    href: 'bow-arrow-leaderboard/'
+  }
+];
+---
+
+<Background />
+
+<section class='container-links'>
+  {
+    array_of_projects.map(({ title, href }, i) => (
+      <a href={href}>{`${i + 1}) ${title}`}</a>
+    ))
+  }
+</section>
+
+<Titulo />
+
+<style>
+  body {
+    min-height: 100vh;
+    background-color: #000;
+  }
+
+  .container-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1vmax;
+    background-color: #fff1;
+    padding: 1vmax;
+    width: fit-content;
+    position: relative;
+    min-height: 100vh;
+    place-content: center;
+    pointer-events: auto;
+    z-index: 5;
+
+    @media (width <= 1111px) and (orientation: portrait) {
+      width: 100%;
+      text-align: center;
+      background-color: transparent;
+    }
+  }
+
+  a {
+    color: #3ecf8e;
+    text-decoration: none;
+    transition:
+      color 0.2s ease,
+      text-shadow 0.2s ease;
+    font-size: 0.9vmax;
+    font-family: 'Geist';
+
+    @media (width <= 1111px) and (orientation: portrait) {
+        font-size: 1.4vmax;
+    }
+  }
+
+  a:visited {
+    color: #2da56f;
+  }
+
+  a:hover {
+    color: #3ecf8e;
+    text-shadow: 0 0 0.1vmax rgba(62, 207, 142, 0.6);
+  }
+
+  a:active {
+    color: #1b7c52;
+  }
+</style>

@@ -1,0 +1,193 @@
+---
+import CodeButton from '@/components/code-button.astro';
+import Layout from '@/layouts/layout.astro';
+import { supabase } from '@/lib/supabase';
+
+export type Task = {
+  id: number;
+  title: string;
+  done: boolean;
+};
+
+const { data } = await supabase
+  .from('project_01_tasks')
+  .select('*')
+  .order('id', { ascending: false });
+
+const tasks = (data ?? []) as Task[];
+---
+
+<Layout title='Global Todo List'>
+  <section class='am-container'>
+    <h1>✅ Global Todo List (Everyone in The World Can Edit It)</h1>
+    <br />
+
+    <form id='taskForm'>
+      <input type='text' id='taskInput' placeholder='New task...' />
+      <button type='submit'>Add</button>
+    </form>
+
+    <form id='taskList'>
+      {
+        tasks?.map(task => (
+          <label
+            class={`am-task  ${task.done ? 'am-done' : ''}`}
+            data-id={task.id}
+          >
+            {task.title}
+            <input
+              class={`am-checkbox-of-a-task`}
+              type='checkbox'
+              checked={task.done}
+            />
+          </label>
+        ))
+      }
+    </form>
+  </section>
+
+  <CodeButton
+    bottom={true}
+    right={true}
+    href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/01/index.astro'
+  />
+</Layout>
+
+<style>
+  body {
+    background-image: url('/assets/project-1-bg.avif');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+  }
+
+  button[type='submit'] {
+    background-color: #fff8;
+    padding: 0.6vmax 1vmax;
+    color: #111;
+
+    &:active {
+      opacity: 0.5;
+    }
+  }
+
+  html {
+    color-scheme: dark light;
+  }
+
+  .am-container {
+    font-family: system-ui, sans-serif;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+  form {
+    display: flex;
+    gap: 0.5rem;
+  }
+  input[type='text'] {
+    flex: 1;
+    padding: 0.5rem;
+  }
+
+  #taskList {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1vmax;
+  }
+
+  li {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+</style>
+
+<style is:global>
+  .am-task.am-done {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { $ } from '@/lib/functions';
+  import { z } from 'zod';
+
+  const TaskSchema = z.object({
+    title: z.string().min(1),
+    done: z.boolean()
+  });
+
+  const ReturnedTaskSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    done: z.boolean()
+  });
+
+  const form = $<HTMLFormElement>('#taskForm');
+  const input = $<HTMLInputElement>('#taskInput');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = input.value.trim();
+
+    const parsed = TaskSchema.safeParse({ title, done: false });
+    if (!parsed.success) return;
+
+    const { data: insertedData, error } = await supabase
+      .from('project_01_tasks')
+      .insert([parsed.data])
+      .select('*');
+
+    if (error) return;
+
+    const validated = ReturnedTaskSchema.safeParse(insertedData[0]);
+    if (!validated.success) return;
+
+    const newTask = validated.data;
+    const taskList = $('#taskList');
+    const newLabel = document.createElement('label');
+    newLabel.className = 'am-task';
+    newLabel.dataset.id = String(newTask.id);
+    newLabel.innerHTML = `
+      ${newTask.title}
+      <input class="am-checkbox-of-a-task" type="checkbox" />
+    `;
+    taskList.prepend(newLabel);
+    input.value = '';
+  });
+
+  document.addEventListener('change', async e => {
+    e.preventDefault();
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (!target.matches('.am-checkbox-of-a-task')) return;
+
+    const done = target.checked;
+    const labelElement = target.closest('.am-task');
+    if (!labelElement) return;
+
+    const idTask = Number(labelElement.getAttribute('data-id') ?? '');
+
+    const { error } = await supabase
+      .from('project_01_tasks')
+      .update({ done })
+      .eq('id', idTask);
+
+    if (error) {
+      target.checked = !done;
+      return;
+    }
+
+    if (done) {
+      labelElement.classList.add('am-done');
+    } else {
+      labelElement.classList.remove('am-done');
+    }
+  });
+</script>

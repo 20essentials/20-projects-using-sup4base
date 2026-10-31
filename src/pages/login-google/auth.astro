@@ -1,0 +1,68 @@
+---
+import Layout from '@/layouts/layout.astro';
+---
+
+<Layout title='Redirigiendo'>
+  <p>Autenticando... Por favor espera.</p>
+</Layout>
+
+<style>
+  body {
+    height: 100vh;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+  }
+</style>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/lib/auth-path';
+  import { tableName } from '@/features/login-google/db-lib';
+  import { previousPageURL, deletePreviousUrl } from '@/lib/local-storage';
+
+  (async () => {
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      const errorMsg = encodeURIComponent(
+        sessionError?.message || 'Sesión no encontrada'
+      );
+      window.location.href = `${PATH.login}?error=${errorMsg}`;
+      return;
+    }
+
+    const { user } = sessionData.session;
+    const { id, email } = user;
+
+    const { data: existingUser, error: userCheckError } = await supabase
+      .from(tableName.users)
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (userCheckError && userCheckError.code !== 'PGRST116') {
+      const errorMsg = encodeURIComponent(userCheckError.message);
+      window.location.href = `${PATH.login}?error=${errorMsg}`;
+      return;
+    }
+
+    if (!existingUser) {
+      const { error: insertError } = await supabase
+        .from(tableName.users)
+        .insert([{ id, email }]);
+
+      if (insertError) {
+        const errorMsg = encodeURIComponent(insertError.message);
+        window.location.href = `${PATH.login}?error=${errorMsg}`;
+        return;
+      }
+    }
+
+    const previousPage = previousPageURL();
+    deletePreviousUrl();
+    window.location.href = previousPage ?? `${PATH.index}`;
+  })();
+</script>

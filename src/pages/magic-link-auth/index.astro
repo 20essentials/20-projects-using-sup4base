@@ -1,0 +1,22 @@
+---
+import Introduction from '@/features/magic-link-auth/introduction.astro';
+import Layout from '@/layouts/layout.astro';
+---
+
+<Layout title='Magic Link Auth'>
+  <Introduction />
+</Layout>
+
+<script>
+  //if the User is not logged in, redirect to login page
+  import { supabase } from '@/lib/supabase';
+  import { PATH } from '@/features/magic-link-auth/path';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { error: sessionError, data: sessionData } =
+      await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      window.location.href = PATH.login;
+    }
+  });
+</script>
