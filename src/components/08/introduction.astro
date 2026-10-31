@@ -1,0 +1,195 @@
+---
+import { baseUrl } from '@/utils/functions';
+import DownloadButton from './download-button.astro';
+import UploadToStorage from './upload-to-storage.astro';
+import CodeButton from '../global-components/code-button.astro';
+
+let personaBgImage = `url(${baseUrl('/assets/wanted.avif')})`;
+let personName = 'Midudev';
+let personaPrice = '30,000,000,000';
+---
+
+<article class='am-container'>
+  <section class='base-poster'></section>
+  <aside
+    class='container-img-portada'
+    id='container-img-portada'
+    style={`--bg: ${personaBgImage}`}
+  >
+  </aside>
+
+  <label class='label-upload-image' for='input-upload-image'>
+    <input type='file' id='input-upload-image' accept='image/*' hidden />
+  </label>
+
+  <input
+    type='text'
+    class='am-input character-name'
+    id='character-name'
+    value={personName}
+    maxlength='15'
+  />
+  <input
+    type='text'
+    class='am-input price'
+    id='price'
+    value={personaPrice}
+    maxlength='14'
+  />
+
+  <UploadToStorage />
+  <DownloadButton />
+</article>
+
+<CodeButton
+  bottom={true}
+  right={true}
+  href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/components/08/introduction.astro'
+/>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+
+  const BUCKET = 'project-8-bucket';
+
+  async function loadUserImage() {
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
+    if (!session?.user) return;
+    const userId = session.user.id;
+
+    const { data: files } = await supabase.storage
+      .from(BUCKET)
+      .list(`images/${userId}`, {
+        limit: 1,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      const filePath = `images/${userId}/${file.name}`;
+      const { data: publicData } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(filePath);
+      const imageUrl = publicData.publicUrl;
+
+      // actualizar DOM
+      const container = document.getElementById('container-img-portada');
+      if (container) container.style.setProperty('--bg', `url(${imageUrl})`);
+
+      const nameInput = document.getElementById(
+        'character-name'
+      ) as HTMLInputElement;
+      const priceInput = document.getElementById('price') as HTMLInputElement;
+
+      const fileName = file.name.replace(/\.[^/.]+$/, '');
+      const parts = fileName.split('-');
+      if (nameInput) {
+        nameInput.value = (parts[0] || 'Sin nombre').replace(/_/g, ' ');
+      }
+      if (priceInput) {
+        const value = Number(parts[1] || '0'); // convertir a número
+        priceInput.value = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        })
+          .format(value)
+          .slice(1);
+      }
+    }
+  }
+
+  loadUserImage();
+</script>
+<style>
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: bottom;
+    background-image: url('/assets/op-background.avif');
+  }
+
+  .am-container {
+    position: relative;
+    width: 320px;
+    height: 480px;
+  }
+
+  .label-upload-image {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 300px;
+    z-index: 5;
+  }
+
+  .base-poster {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url('/assets/base-one-piece.png');
+    position: relative;
+    z-index: 5;
+  }
+
+  .container-img-portada {
+    position: absolute;
+    width: 244px;
+    height: 186px;
+    background-image: var(--bg, url('/assets/wanted.avif'));
+    background-size: cover;
+    background-position: center;
+    top: 116px;
+    left: 42px;
+    z-index: -1;
+    box-shadow: inset 0 0 30px black;
+  }
+
+  @font-face {
+    font-family: 'scheherazadenew';
+    src: url('/assets/scheherazadenew.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  .am-input {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    left: 50%;
+    width: 70%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 0;
+    color: #563f39;
+    font-family: scheherazadenew;
+
+    &.character-name {
+      /* background-color: red; */
+      position: absolute;
+      bottom: 80px;
+      text-align: center;
+      font-size: 40px;
+      line-height: 0.5;
+    }
+
+    &.price {
+      font-family: 'Times New Roman', Times, serif;
+      /* background-color: blue; */
+      bottom: 63px;
+      width: 70%;
+      left: 60%;
+      font-size: 28px;
+      font-weight: 200;
+    }
+  }
+</style>

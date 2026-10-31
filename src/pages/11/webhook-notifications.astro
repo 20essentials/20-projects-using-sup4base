@@ -1,5 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from '@/layouts/layout.astro';
 ---
 
 <Layout title='Webhook Notifications'>
@@ -22,7 +22,7 @@ import Layout from '@/layouts/Layout.astro';
 <script>
   import { $ } from '@/utils/functions';
   const totalOutput = $('.total');
-  import { channel } from '@/components/11/commonChannel';
+  import { channel } from '@/components/11/common-channel';
 
   channel
     .on('broadcast', { event: 'total_updated' }, ({payload}) => {
@@ -36,7 +36,7 @@ import Layout from '@/layouts/Layout.astro';
   //if the User is not logged in, redirect to login page
   import { supabase } from '@/lib/supabase';
   import { PATH } from '@/components/04/path';
-  import { setPreviousUrl } from '@/utils/localStorage';
+  import { setPreviousUrl } from '@/utils/local-storage';
 
   document.addEventListener('DOMContentLoaded', async () => {
     const { error: sessionError, data: sessionData } =

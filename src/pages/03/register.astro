@@ -1,5 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from '@/layouts/layout.astro';
 ---
 
 <Layout title='Register with Email'>
@@ -170,7 +170,7 @@ import Layout from '@/layouts/Layout.astro';
 </style>
 
 <script>
-  import { tableName } from '@/components/03/dbLib';
+  import { tableName } from '@/components/03/db-lib';
   import { PATH } from '@/components/03/path';
   import { supabase } from '@/lib/supabase';
   import { $, baseUrl } from '@/utils/functions';

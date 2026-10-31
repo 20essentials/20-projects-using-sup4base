@@ -1,7 +1,7 @@
 ---
-import Introduction from '@/components/07/Introduction.astro';
-import Layout from '@/layouts/Layout.astro';
-import ButtonSend from '@/components/07/ButtonSend.astro';
+import Introduction from '@/components/07/introduction.astro';
+import Layout from '@/layouts/layout.astro';
+import ButtonSend from '@/components/07/button-send.astro';
 ---
 
 <Layout title='Global Designs (Storage Supabase)'>
@@ -13,7 +13,7 @@ import ButtonSend from '@/components/07/ButtonSend.astro';
   //if the User is not logged in, redirect to login page
   import { supabase } from '@/lib/supabase';
   import { PATH } from '@/components/04/path';
-  import { setPreviousUrl } from '@/utils/localStorage';
+  import { setPreviousUrl } from '@/utils/local-storage';
 
   document.addEventListener('DOMContentLoaded', async () => {
     const { error: sessionError, data: sessionData } =

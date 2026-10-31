@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
-import { channel } from '@/components/11/commonChannel';
+import { channel } from '@/components/11/common-channel';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

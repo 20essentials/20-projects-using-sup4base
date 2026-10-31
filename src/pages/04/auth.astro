@@ -1,5 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from '@/layouts/layout.astro';
 ---
 
 <Layout title='Redirigiendo'>
@@ -19,8 +19,8 @@ import Layout from '@/layouts/Layout.astro';
 <script>
   import { supabase } from '@/lib/supabase';
   import { PATH } from '@/components/04/path';
-  import { tableName } from '@/components/04/dbLib';
-  import { previousPageURL, deletePreviousUrl } from '@/utils/localStorage';
+  import { tableName } from '@/components/04/db-lib';
+  import { previousPageURL, deletePreviousUrl } from '@/utils/local-storage';
 
   (async () => {
     const { data: sessionData, error: sessionError } =
