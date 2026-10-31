@@ -161,7 +161,21 @@ select:focus-visible {
   cursor: default;
 }
 
-.cell:not(.dim):hover {
+.cell.fill {
+  background: transparent;
+  border: 0.12vmax dashed #4aa3e8aa;
+  color: #a8d4f7;
+  font-weight: 500;
+  font-style: italic;
+  padding: 0.7vmax 1vmax;
+}
+
+.cell.fill:hover {
+  filter: brightness(1.25);
+  transform: translateX(0.2vmax);
+}
+
+.cell:not(.dim):not(.fill):hover {
   filter: brightness(1.15);
   transform: translateX(0.2vmax);
 }

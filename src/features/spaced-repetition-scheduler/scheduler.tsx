@@ -73,6 +73,15 @@ function rpcToMessage(raw: string) {
   return raw;
 }
 
+function hash01(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967296;
+}
+
 export const Scheduler = () => {
   const [rows, setRows] = useState<Topic[] | null>(null);
   const [loadError, setLoadError] = useState<null | string>(null);
@@ -250,6 +259,20 @@ export const Scheduler = () => {
     };
   }, [rows, today, tomorrow]);
 
+  const tomorrowTarget = 3;
+
+  const tomorrowExtras = useMemo(() => {
+    if (!rows) return [];
+    const need = tomorrowTarget - overview.tomorrow.length;
+    if (need <= 0) return [];
+    return rows
+      .filter(r => r.proxima_fecha > tomorrow)
+      .map(r => ({ r, k: hash01(`${tomorrow}:${r.id}`) }))
+      .sort((a, b) => a.k - b.k)
+      .slice(0, need)
+      .map(x => x.r);
+  }, [rows, overview, tomorrow]);
+
   function chipClass(iso: string, tn: string, tm: string) {
     if (iso === tn) return 'chip today';
     if (iso === tm) return 'chip tomorrow';
@@ -321,15 +344,41 @@ export const Scheduler = () => {
 
         <div className='tomorrow-block'>
           <h3>
-            MAÑANA <small>({overview.tomorrow.length})</small>
+            MAÑANA{' '}
+            <small>
+              ({overview.tomorrow.length}
+              {tomorrowExtras.length ? `+${tomorrowExtras.length}` : ''} de{' '}
+              {tomorrowTarget})
+            </small>
           </h3>
           <div className='cells'>
-            {overview.tomorrow.length === 0 && <em>Libre mañana ✔</em>}
+            {overview.tomorrow.length === 0 &&
+              tomorrowExtras.length === 0 && <em>Libre mañana ✔</em>}
             {overview.tomorrow.map(r => (
               <span key={r.id} className='cell dim'>
                 {r.tema}
               </span>
             ))}
+            {tomorrowExtras.map(r =>
+              isAdmin ? (
+                <button
+                  key={r.id}
+                  className='cell fill'
+                  title='Extra de mañana (aleatorio): repásalo y su fecha oficial avanza a la siguiente del Excel'
+                  onClick={() => markReviewed(r)}
+                >
+                  {r.tema}
+                </button>
+              ) : (
+                <span
+                  key={r.id}
+                  className='cell fill'
+                  title='Extra de mañana (aleatorio): para repasarla necesitas entrar como admin'
+                >
+                  {r.tema}
+                </span>
+              )
+            )}
           </div>
         </div>
       </section>
