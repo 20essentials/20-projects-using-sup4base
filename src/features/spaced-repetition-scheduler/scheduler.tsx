@@ -365,7 +365,11 @@ export const Scheduler = () => {
                     : dateLabel(r.proxima_fecha, today, tomorrow)}
                 </span>
                 <span className='row-gap'>
-                  {nextGapOf(r) ? `luego +${nextGapOf(r)}d` : 'fin'}
+                  {isDone(r)
+                    ? ''
+                    : nextGapOf(r)
+                      ? `luego +${nextGapOf(r)}d`
+                      : 'último repaso'}
                 </span>
                 <span className='row-actions'>
                   {isDone(r) && !isAdmin ? (
