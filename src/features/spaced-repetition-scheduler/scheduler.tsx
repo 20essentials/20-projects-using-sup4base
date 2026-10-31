@@ -77,6 +77,11 @@ export const Scheduler = () => {
   const [actionError, setActionError] = useState<null | string>(null);
   const [newTema, setNewTema] = useState('');
 
+  const [menuFor, setMenuFor] = useState<null | string>(null);
+  const [editFor, setEditFor] = useState<Topic | null>(null);
+  const [editTema, setEditTema] = useState('');
+  const [deleteFor, setDeleteFor] = useState<Topic | null>(null);
+
   async function fetchRows() {
     const { data, error } = await supabase
       .from('project_22_scheduler')
@@ -155,6 +160,50 @@ export const Scheduler = () => {
       setRows(prev =>
         sortRows(prev?.map(r => (r.id === updated.id ? updated : r)) ?? [])
       );
+    }
+    setWorking(false);
+  }
+
+  async function submitRename() {
+    if (!editFor) return;
+    const tema = editTema.trim();
+    if (!tema) {
+      setActionError('El tema no puede estar vacío');
+      return;
+    }
+    setWorking(true);
+    setActionError(null);
+    const { data, error } = await supabase.rpc('scheduler_rename_topic', {
+      p_id: editFor.id,
+      p_tema: tema,
+      p_pass: adminPassword
+    });
+    if (error) {
+      setActionError(rpcToMessage(error.message));
+    } else if (data) {
+      const updated = data as Topic;
+      setRows(prev =>
+        sortRows(prev?.map(r => (r.id === updated.id ? updated : r)) ?? [])
+      );
+      setEditFor(null);
+    }
+    setWorking(false);
+  }
+
+  async function submitDelete() {
+    if (!deleteFor) return;
+    setWorking(true);
+    setActionError(null);
+    const { error } = await supabase.rpc('scheduler_delete_topic', {
+      p_id: deleteFor.id,
+      p_pass: adminPassword
+    });
+    if (error) {
+      setActionError(rpcToMessage(error.message));
+    } else {
+      const id = deleteFor.id;
+      setRows(prev => prev?.filter(r => r.id !== id) ?? null);
+      setDeleteFor(null);
     }
     setWorking(false);
   }
@@ -281,42 +330,82 @@ export const Scheduler = () => {
 
       <section className='agenda'>
         <ul className='rows'>
-          {(rows ?? []).map(r => (
-            <li key={r.id} className={`row${isDone(r) ? ' done' : ''}`}>
-              <span className='row-tema' title={r.tema}>
-                {r.tema}
-              </span>
-              <span
-                className={
-                  isDone(r)
-                    ? 'chip done'
-                    : chipClass(r.proxima_fecha, today, tomorrow)
-                }
-              >
-                {isDone(r)
-                  ? '✓'
-                  : dateLabel(r.proxima_fecha, today, tomorrow)}
-              </span>
-              <span className='row-count'>
-                repaso {Math.min(r.streak + 1, r.fechas.length)}/
-                {r.fechas.length}
-              </span>
-              {isDone(r) || !isAdmin ? (
-                <span className='row-done-text'>
-                  {isDone(r) ? 'terminado' : ''}
+          {(rows ?? []).map(r => {
+            const dueToday = !isDone(r) && r.proxima_fecha === today;
+            return (
+              <li key={r.id} className={`row${isDone(r) ? ' done' : ''}`}>
+                <span className='row-tema' title={r.tema}>
+                  {r.tema}
                 </span>
-              ) : (
-                <button
-                  className='row-done'
-                  disabled={working}
-                  onClick={() => markReviewed(r)}
-                  title='Marcar como repasado'
+                <span
+                  className={
+                    isDone(r)
+                      ? 'chip done'
+                      : chipClass(r.proxima_fecha, today, tomorrow)
+                  }
                 >
-                  Repasado ✓
-                </button>
-              )}
-            </li>
-          ))}
+                  {isDone(r)
+                    ? '✓'
+                    : dateLabel(r.proxima_fecha, today, tomorrow)}
+                </span>
+                <span className='row-count'>
+                  repaso {Math.min(r.streak + 1, r.fechas.length)}/
+                  {r.fechas.length}
+                </span>
+                <span className='row-actions'>
+                  {isDone(r) && !isAdmin ? (
+                    <span className='row-done-text'>terminado</span>
+                  ) : isAdmin ? (
+                    <>
+                      {dueToday && (
+                        <button
+                          className='row-done'
+                          disabled={working}
+                          onClick={() => markReviewed(r)}
+                          title='Marcar como repasado'
+                        >
+                          Repasado ✓
+                        </button>
+                      )}
+                      <button
+                        className='row-more'
+                        title='Opciones'
+                        onClick={() =>
+                          setMenuFor(menuFor === r.id ? null : r.id)
+                        }
+                      >
+                        ⋯
+                      </button>
+                      {menuFor === r.id && (
+                        <div className='row-menu'>
+                          <button
+                            type='button'
+                            onClick={() => {
+                              setMenuFor(null);
+                              setEditFor(r);
+                              setEditTema(r.tema);
+                            }}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type='button'
+                            className='danger'
+                            onClick={() => {
+                              setMenuFor(null);
+                              setDeleteFor(r);
+                            }}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
           {!rows && !loadError && <li>Cargando…</li>}
           {rows && rows.length === 0 && !loadError && <li>Sin temas</li>}
         </ul>
@@ -343,6 +432,70 @@ export const Scheduler = () => {
             </button>
           </div>
         </section>
+      )}
+
+      {menuFor && (
+        <div className='menu-back' onClick={() => setMenuFor(null)} />
+      )}
+
+      {editFor && (
+        <div className='modal-back' onClick={() => setEditFor(null)}>
+          <form
+            className='modal'
+            onClick={e => e.stopPropagation()}
+            onSubmit={e => {
+              e.preventDefault();
+              submitRename();
+            }}
+          >
+            <h3>Editar tema</h3>
+            <input
+              autoFocus
+              type='text'
+              value={editTema}
+              onChange={e => setEditTema(e.target.value)}
+            />
+            <div className='modal-actions'>
+              <button type='button' onClick={() => setEditFor(null)}>
+                Cancelar
+              </button>
+              <button
+                type='submit'
+                disabled={working || editTema.trim().length === 0}
+              >
+                {working ? 'Guardando…' : 'Guardar'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {deleteFor && (
+        <div className='modal-back' onClick={() => setDeleteFor(null)}>
+          <div
+            className='modal'
+            onClick={e => e.stopPropagation()}
+          >
+            <h3>Eliminar tema</h3>
+            <p className='modal-no-auth'>
+              ¿Seguro que quieres eliminar «{deleteFor.tema}» con todo su
+              historial de repasos? Esta acción es definitiva.
+            </p>
+            <div className='modal-actions'>
+              <button type='button' onClick={() => setDeleteFor(null)}>
+                Cancelar
+              </button>
+              <button
+                type='button'
+                className='danger'
+                disabled={working}
+                onClick={submitDelete}
+              >
+                {working ? 'Eliminando…' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {gateOpen && (

@@ -33,6 +33,8 @@ drop table if exists project_22_scheduler cascade;
 drop function if exists scheduler_add_topic(text, text);
 drop function if exists scheduler_add_topic(smallint, text, text);
 drop function if exists scheduler_mark_reviewed(uuid, text);
+drop function if exists scheduler_rename_topic(uuid, text, text);
+drop function if exists scheduler_delete_topic(uuid, text);
 drop function if exists scheduler_check_password(text);
 drop function if exists scheduler_ladder();
 drop function if exists scheduler_secret();
@@ -197,6 +199,82 @@ $$;
 
 revoke all on function scheduler_add_topic(text, text) from public;
 grant execute on function scheduler_add_topic(text, text) to anon, authenticated;
+
+-- =====================================================================
+-- 4.5) RPC: RENOMBRAR TEMA (requiere password)
+-- =====================================================================
+-- Los temas futuros no llevan botón de "Repasado" (solo confunde); en su
+-- lugar el cliente les da un menú con Editar (renombrar) y Eliminar.
+create or replace function scheduler_rename_topic(
+  p_id uuid,
+  p_tema text,
+  p_pass text
+)
+returns project_22_scheduler
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row project_22_scheduler;
+begin
+  if p_pass is null or p_pass <> scheduler_secret() then
+    raise exception 'WRONG_PASSWORD' using errcode = '42501';
+  end if;
+
+  select * into v_row from project_22_scheduler where id = p_id;
+
+  if v_row.id is null then
+    raise exception 'TOPIC_NOT_FOUND' using errcode = '22023';
+  end if;
+
+  if p_tema is null or length(trim(p_tema)) = 0 then
+    raise exception 'EMPTY_TOPIC' using errcode = '22023';
+  end if;
+
+  update project_22_scheduler
+     set tema = trim(p_tema)
+   where id = p_id
+  returning * into v_row;
+
+  return v_row;
+end;
+$$;
+
+-- =====================================================================
+-- 4.6) RPC: ELIMINAR TEMA (requiere password)
+-- =====================================================================
+create or replace function scheduler_delete_topic(
+  p_id uuid,
+  p_pass text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  if p_pass is null or p_pass <> scheduler_secret() then
+    raise exception 'WRONG_PASSWORD' using errcode = '42501';
+  end if;
+
+  select id into v_id from project_22_scheduler where id = p_id;
+
+  if v_id is null then
+    raise exception 'TOPIC_NOT_FOUND' using errcode = '22023';
+  end if;
+
+  delete from project_22_scheduler where id = p_id;
+end;
+$$;
+
+revoke all on function scheduler_rename_topic(uuid, text, text) from public;
+grant execute on function scheduler_rename_topic(uuid, text, text) to anon, authenticated;
+
+revoke all on function scheduler_delete_topic(uuid, text) from public;
+grant execute on function scheduler_delete_topic(uuid, text) to anon, authenticated;
 
 -- =====================================================================
 -- 5) SEED: LOS 226 TEMAS DEL EXCEL CON SUS FECHAS EXACTAS

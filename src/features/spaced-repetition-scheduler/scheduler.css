@@ -294,6 +294,80 @@ select:focus-visible {
   text-align: center;
 }
 
+.row-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.4vmax;
+  position: relative;
+}
+
+.row-more {
+  background: #ffffff14;
+  border: 0.12vmax solid #ffffff1f;
+  border-radius: 0.4vmax;
+  color: #dfe7ec;
+  font-weight: 700;
+  padding: 0.3vmax 0.75vmax;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    background: #ffffff2e;
+    border-color: #ffffff80;
+  }
+}
+
+.row-menu {
+  position: absolute;
+  top: calc(100% + 0.4vmax);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2vmax;
+  background: #10161c;
+  border: 0.12vmax solid #ffffff3d;
+  border-radius: 0.5vmax;
+  padding: 0.4vmax;
+  min-width: 8vmax;
+  box-shadow: 0 0.4vmax 1.5vmax #000a;
+
+  button {
+    background: transparent;
+    border: none;
+    border-radius: 0.35vmax;
+    color: #eef4f8;
+    text-align: left;
+    font-size: 0.85vmax;
+    font-weight: 500;
+    padding: 0.45vmax 0.8vmax;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background: #ffffff14;
+    }
+
+    &.danger {
+      color: #ff938d;
+
+      &:hover {
+        background: #e5393526;
+      }
+    }
+  }
+}
+
+.menu-back {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+}
+
 /* ========================= ADMIN BAR ========================= */
 .admin-bar {
   width: min(150vmax, 100%);
@@ -446,6 +520,17 @@ select:focus-visible {
 
         &:hover {
           background: #ffffff2b;
+        }
+      }
+
+      &.danger {
+        background: #e5393526;
+        color: #ffd7d5;
+        border: 0.12vmax solid #e53935;
+
+        &:hover {
+          background: #e53935;
+          color: #fff;
         }
       }
 
