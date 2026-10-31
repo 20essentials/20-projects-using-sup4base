@@ -17,8 +17,8 @@
 -- - Lectura pública (visitas).
 -- - Marcar "Repasado" SOLO con tu password especial (validado en
 --   Postgres, nunca en el cliente): avanza al SIGUIENTE date del Excel.
--- - Temas nuevos que agregues a mano arrancan hoy y usan la escala
---   acumulada del CULT SMART 1 como referencia.
+-- - Temas nuevos que agregues a mano arrancan MAÑANA (acabas de
+--   estudiarlos hoy) y usan la escala acumulada del CULT SMART 1.
 -- ⚠️ Recuerda cambiar tu password en scheduler_secret() ANTES de ejecutar.
 -- ⚠️ Re-ejecutar el script borra tu progreso manual y lo reconstruye del
 --    Excel: la racha vuelve a ser "todas las fechas pasadas contadas" y
@@ -153,7 +153,8 @@ grant execute on function scheduler_mark_reviewed(uuid, text) to anon, authentic
 -- 4) RPC: AGREGAR TEMA (requiere password)
 -- =====================================================================
 -- Los temas del Excel nacen con sus fechas del seed de abajo; los que
--- agregues vos a mano arrancan HOY y acumulan la escala del CULT SMART 1.
+-- agregues vos a mano arrancan MAÑANA (acabas de estudiarlos hoy) y
+-- acumulan la escala del CULT SMART 1.
 create or replace function scheduler_add_topic(
   p_tema text,
   p_pass text
@@ -171,7 +172,8 @@ declare
                            1, 4, 7, 9, 10,
                            12, 16, 21, 28, 30, 28, 30, 12, 28, 50, 60, 90,
                            120, 80, 100, 120, 140, 150, 250];
-  v_fechas date[] := array[current_date];
+  v_fechas date[] := array[current_date + 1];
+  v_acum   int := 0;
   v_acum   int := 0;
 begin
   if p_pass is null or p_pass <> scheduler_secret() then
