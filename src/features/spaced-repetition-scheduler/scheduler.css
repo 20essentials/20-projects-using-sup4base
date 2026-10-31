@@ -220,11 +220,18 @@ select:focus-visible {
   font-weight: 500;
 }
 
-.row-count {
+.row-gap {
   font-size: 0.8vmax;
   opacity: 0.75;
   white-space: nowrap;
   text-align: center;
+}
+
+.agenda-legend {
+  margin: -0.4vmax 0 0;
+  font-size: 0.85vmax;
+  line-height: 1.5;
+  opacity: 0.6;
 }
 
 .chip {
@@ -570,7 +577,7 @@ select:focus-visible {
       grid-column: 1 / -1;
     }
 
-    .row-count,
+    .row-gap,
     .row-done-text {
       display: none;
     }

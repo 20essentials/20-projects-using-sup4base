@@ -45,6 +45,17 @@ function isDone(topic: Topic) {
   return topic.streak >= topic.fechas.length;
 }
 
+function nextGapOf(topic: Topic) {
+  const here = topic.streak;
+  const next = here + 1;
+  if (isDone(topic) || next >= topic.fechas.length) return null;
+  return Math.round(
+    (parseIsoDate(topic.fechas[next]).getTime() -
+      parseIsoDate(topic.fechas[here]).getTime()) /
+      86400000
+  );
+}
+
 function sortRows(rows: Topic[]) {
   return rows.toSorted(
     (a, b) =>
@@ -329,6 +340,11 @@ export const Scheduler = () => {
       </section>
 
       <section className='agenda'>
+        <p className='agenda-legend'>
+          Los repasos siguen la escala acumulada del Excel: +1, +4, +7, +9,
+          +10, … días entre cada repaso. El valor de cada fila son los días
+          que pasarán hasta el repaso siguiente.
+        </p>
         <ul className='rows'>
           {(rows ?? []).map(r => {
             const dueToday = !isDone(r) && r.proxima_fecha === today;
@@ -348,9 +364,8 @@ export const Scheduler = () => {
                     ? '✓'
                     : dateLabel(r.proxima_fecha, today, tomorrow)}
                 </span>
-                <span className='row-count'>
-                  repaso {Math.min(r.streak + 1, r.fechas.length)}/
-                  {r.fechas.length}
+                <span className='row-gap'>
+                  {nextGapOf(r) ? `luego +${nextGapOf(r)}d` : 'fin'}
                 </span>
                 <span className='row-actions'>
                   {isDone(r) && !isAdmin ? (
