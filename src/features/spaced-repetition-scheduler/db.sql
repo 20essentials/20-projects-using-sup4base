@@ -17,6 +17,8 @@
 -- - Lectura pública (visitas).
 -- - Marcar "Repasado" SOLO con tu password especial (validado en
 --   Postgres, nunca en el cliente): avanza al SIGUIENTE date del Excel.
+--   Al pasar la última fecha del Excel la agenda se extiende con saltos
+--   de +50 días (750, 800, 850…): SIEMPRE hay fecha futura.
 -- - Temas nuevos que agregues a mano arrancan MAÑANA (acabas de
 --   estudiarlos hoy) y usan la escala acumulada del CULT SMART 1.
 -- ⚠️ Recuerda cambiar tu password en scheduler_secret() ANTES de ejecutar.
@@ -108,6 +110,9 @@ grant select on project_22_scheduler to anon, authenticated;
 -- Avanza al siguiente repaso del Excel: streak + 1 ⇒ proxima_fecha pasa
 -- a ser fechas[streak + 2] (la columna siguiente, calculada automáticamente).
 -- Nada de recalcular desde hoy: la agenda es la del Excel, pase lo que pase.
+-- EXCEPCIÓN: si se repasa la ÚLTIMA fecha del Excel, la agenda se extiende
+-- con un salto = anterior + 50 días (p. ej. 750 → 800 → 850…) para que
+-- SIEMPRE exista una fecha futura que volver a repasar.
 create or replace function scheduler_mark_reviewed(
   p_id uuid,
   p_pass text
@@ -120,6 +125,7 @@ as $$
 declare
   v_row   project_22_scheduler;
   v_total int;
+  v_gap   int;
 begin
   if p_pass is null or p_pass <> scheduler_secret() then
     raise exception 'WRONG_PASSWORD' using errcode = '42501';
@@ -133,8 +139,31 @@ begin
 
   v_total := coalesce(array_length(v_row.fechas, 1), 0);
 
-  if v_row.streak >= v_total then
-    raise exception 'ALL_REVIEWED' using errcode = '22023';
+  -- Última fecha pendiente (o tema ya terminado): extender la agenda
+  -- con un salto cada vez mayor y programar esa nueva fecha.
+  if v_row.streak + 1 >= v_total and v_total > 0 then
+    if v_total > 1 then
+      v_gap := v_row.fechas[v_total] - v_row.fechas[v_total - 1];
+    else
+      v_gap := 1;
+    end if;
+    v_gap := v_gap + 50;
+
+    update project_22_scheduler
+       set fechas = v_row.fechas || (v_row.fechas[v_total] + v_gap)::date
+     where id = p_id
+    returning * into v_row;
+
+    -- El tema quedó terminado de repasar (ya no hay fecha por consumir):
+    -- la nueva fecha queda programada, sin incrementar la racha.
+    if v_row.streak < v_total - 1 then
+      update project_22_scheduler
+         set streak = v_row.streak + 1
+       where id = p_id
+      returning * into v_row;
+    end if;
+
+    return v_row;
   end if;
 
   update project_22_scheduler
@@ -511,4 +540,19 @@ values
 -- todas sus fechas pasadas quedan con racha completa (terminados).
 update project_22_scheduler
    set streak = (select count(*) from unnest(fechas) as d where d < current_date);
+
+-- Por si algún tema queda con TODAS sus fechas pasadas (re-ejecución de
+-- este script años atrás del export): se extiende igual que la RPC,
+-- con un salto = anterior + 50 días, para que nunca exista fin de agenda.
+update project_22_scheduler
+   set fechas = fechas || (
+         fechas[array_length(fechas, 1)] +
+         (coalesce(
+            fechas[array_length(fechas, 1)] -
+              fechas[array_length(fechas, 1) - 1],
+            1
+          ) + 50)::int
+       )::date
+ where streak >= array_length(fechas, 1)
+   and array_length(fechas, 1) > 1;
 

@@ -209,10 +209,6 @@ select:focus-visible {
   }
 }
 
-.row.done {
-  opacity: 0.55;
-}
-
 .row-tema {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -258,11 +254,6 @@ select:focus-visible {
     color: #dfe7ec;
     border-color: #ffffff2e;
   }
-
-  &.done {
-    background: transparent;
-    color: #7ef0bb;
-  }
 }
 
 .row-done {
@@ -291,14 +282,6 @@ select:focus-visible {
     color: #fff;
     transform: scale(0.97);
   }
-}
-
-.row-done-text {
-  justify-self: end;
-  font-size: 0.85vmax;
-  color: #7ef0bb;
-  opacity: 0.8;
-  text-align: center;
 }
 
 .row-actions {
@@ -577,8 +560,7 @@ select:focus-visible {
       grid-column: 1 / -1;
     }
 
-    .row-gap,
-    .row-done-text {
+    .row-gap {
       display: none;
     }
   }

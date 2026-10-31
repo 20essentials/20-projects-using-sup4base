@@ -41,14 +41,10 @@ function shortDate(iso: string, thisYear: number) {
   );
 }
 
-function isDone(topic: Topic) {
-  return topic.streak >= topic.fechas.length;
-}
-
 function nextGapOf(topic: Topic) {
   const here = topic.streak;
   const next = here + 1;
-  if (isDone(topic) || next >= topic.fechas.length) return null;
+  if (next >= topic.fechas.length) return null;
   return Math.round(
     (parseIsoDate(topic.fechas[next]).getTime() -
       parseIsoDate(topic.fechas[here]).getTime()) /
@@ -59,9 +55,7 @@ function nextGapOf(topic: Topic) {
 function sortRows(rows: Topic[]) {
   return rows.toSorted(
     (a, b) =>
-      Number(isDone(a)) - Number(isDone(b)) ||
-      a.proxima_fecha.localeCompare(b.proxima_fecha) ||
-      a.orden - b.orden
+      a.proxima_fecha.localeCompare(b.proxima_fecha) || a.orden - b.orden
   );
 }
 
@@ -69,7 +63,6 @@ function rpcToMessage(raw: string) {
   if (raw.includes('WRONG_PASSWORD')) return 'Password incorrecto';
   if (raw.includes('EMPTY_TOPIC')) return 'El tema no puede estar vacío';
   if (raw.includes('TOPIC_NOT_FOUND')) return 'Tema no encontrado';
-  if (raw.includes('ALL_REVIEWED')) return 'Ese tema ya está terminado';
   if (raw.includes('duplicate key')) return 'Ese tema ya existe';
   return raw;
 }
@@ -302,11 +295,7 @@ export const Scheduler = () => {
           <div className='cells'>
             {overview.today.length === 0 && <em>Libre hoy ✔</em>}
             {overview.today.map(r =>
-              isDone(r) ? (
-                <span key={r.id} className='cell dim'>
-                  {r.tema}
-                </span>
-              ) : isAdmin ? (
+              isAdmin ? (
                 <button
                   key={r.id}
                   className='cell today'
@@ -347,34 +336,22 @@ export const Scheduler = () => {
         </p>
         <ul className='rows'>
           {(rows ?? []).map(r => {
-            const dueToday = !isDone(r) && r.proxima_fecha === today;
+            const dueToday = r.proxima_fecha === today;
             return (
-              <li key={r.id} className={`row${isDone(r) ? ' done' : ''}`}>
+              <li key={r.id} className='row'>
                 <span className='row-tema' title={r.tema}>
                   {r.tema}
                 </span>
                 <span
-                  className={
-                    isDone(r)
-                      ? 'chip done'
-                      : chipClass(r.proxima_fecha, today, tomorrow)
-                  }
+                  className={chipClass(r.proxima_fecha, today, tomorrow)}
                 >
-                  {isDone(r)
-                    ? '✓'
-                    : dateLabel(r.proxima_fecha, today, tomorrow)}
+                  {dateLabel(r.proxima_fecha, today, tomorrow)}
                 </span>
                 <span className='row-gap'>
-                  {isDone(r)
-                    ? ''
-                    : nextGapOf(r)
-                      ? `luego +${nextGapOf(r)}d`
-                      : 'último repaso'}
+                  {nextGapOf(r) ? `luego +${nextGapOf(r)}d` : ''}
                 </span>
                 <span className='row-actions'>
-                  {isDone(r) && !isAdmin ? (
-                    <span className='row-done-text'>terminado</span>
-                  ) : isAdmin ? (
+                  {isAdmin && (
                     <>
                       {dueToday && (
                         <button
@@ -420,7 +397,7 @@ export const Scheduler = () => {
                         </div>
                       )}
                     </>
-                  ) : null}
+                  )}
                 </span>
               </li>
             );
