@@ -210,7 +210,6 @@ declare
                            120, 80, 100, 120, 140, 150, 250];
   v_fechas date[] := array[current_date + 1];
   v_acum   int := 0;
-  v_acum   int := 0;
 begin
   if p_pass is null or p_pass <> scheduler_secret() then
     raise exception 'WRONG_PASSWORD' using errcode = '42501';
