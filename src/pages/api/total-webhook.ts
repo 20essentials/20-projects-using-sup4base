@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
 import { channel } from '@/lib/common-channel';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -10,26 +9,16 @@ export const POST: APIRoute = async ({ request }) => {
     const usuario_id = body.record?.usuario_id;
     const total_compra = body.record?.total_compra;
 
-    if (!usuario_id || !total_compra) {
+    if (usuario_id == null || total_compra == null) {
       return new Response(
         JSON.stringify({ error: 'Missing fields in webhook payload' }),
         { status: 400 }
       );
     }
 
-    // Actualizamos o insertamos el total en la tabla
-    const { error: upsertError } = await supabase
-      .from('project_11_compras')
-      .upsert({ usuario_id, total_compra }, { onConflict: 'usuario_id' });
-
-    if (upsertError) {
-      console.error('Error upserting total:', upsertError);
-      return new Response(JSON.stringify({ error: upsertError.message }), {
-        status: 500
-      });
-    }
-
-    // Broadcast del total actualizado via Supabase Realtime
+    // Solo notificamos: no escribimos en project_11_compras porque este
+    // webhook se dispara precisamente por un INSERT/UPDATE en esa tabla.
+    // Escribir aquí re-dispara el webhook (bucle) y con RLS el anon falla.
     try {
       await channel.send({
         type: 'broadcast',
