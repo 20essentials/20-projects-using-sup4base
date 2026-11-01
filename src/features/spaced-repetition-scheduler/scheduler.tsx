@@ -249,6 +249,8 @@ export const Scheduler = () => {
 
   const today = useMemo(() => isoOf(new Date()), []);
   const tomorrow = useMemo(() => isoOf(shiftDays(new Date(), 1)), [today]);
+
+  const loading = rows === null && !loadError;
   const thisYear = new Date().getFullYear();
 
   const overview = useMemo(() => {
@@ -319,25 +321,35 @@ export const Scheduler = () => {
       <section className='overview'>
         <div className='today-block'>
           <h3>
-            HOY <small>({overview.today.length})</small>
+            HOY <small>({loading ? '…' : overview.today.length})</small>
           </h3>
           <div className='cells'>
-            {overview.today.length === 0 && <em>Libre hoy ✔</em>}
-            {overview.today.map(r =>
-              isAdmin ? (
-                <button
-                  key={r.id}
-                  className='cell today'
-                  title='Marcar como repasado'
-                  onClick={() => markReviewed(r)}
-                >
-                  {r.tema}
-                </button>
-              ) : (
-                <span key={r.id} className='cell today'>
-                  {r.tema}
-                </span>
-              )
+            {loading ? (
+              <>
+                <span className='cell skel' />
+                <span className='cell skel short' />
+                <span className='cell skel' />
+              </>
+            ) : (
+              <>
+                {overview.today.length === 0 && <em>Libre hoy ✔</em>}
+                {overview.today.map(r =>
+                  isAdmin ? (
+                    <button
+                      key={r.id}
+                      className='cell today'
+                      title='Marcar como repasado'
+                      onClick={() => markReviewed(r)}
+                    >
+                      {r.tema}
+                    </button>
+                  ) : (
+                    <span key={r.id} className='cell today'>
+                      {r.tema}
+                    </span>
+                  )
+                )}
+              </>
             )}
           </div>
         </div>
@@ -346,38 +358,51 @@ export const Scheduler = () => {
           <h3>
             MAÑANA{' '}
             <small>
-              ({overview.tomorrow.length}
-              {tomorrowExtras.length ? `+${tomorrowExtras.length}` : ''} de{' '}
-              {tomorrowTarget})
+              ({loading
+                ? '…'
+                : `${overview.tomorrow.length}${
+                    tomorrowExtras.length ? `+${tomorrowExtras.length}` : ''
+                  } de ${tomorrowTarget}`}
+              )
             </small>
           </h3>
           <div className='cells'>
-            {overview.tomorrow.length === 0 &&
-              tomorrowExtras.length === 0 && <em>Libre mañana ✔</em>}
-            {overview.tomorrow.map(r => (
-              <span key={r.id} className='cell dim'>
-                {r.tema}
-              </span>
-            ))}
-            {tomorrowExtras.map(r =>
-              isAdmin ? (
-                <button
-                  key={r.id}
-                  className='cell fill'
-                  title='Extra de mañana (aleatorio): repásalo y su fecha oficial avanza a la siguiente del Excel'
-                  onClick={() => markReviewed(r)}
-                >
-                  {r.tema}
-                </button>
-              ) : (
-                <span
-                  key={r.id}
-                  className='cell fill'
-                  title='Extra de mañana (aleatorio): para repasarla necesitas entrar como admin'
-                >
-                  {r.tema}
-                </span>
-              )
+            {loading ? (
+              <>
+                <span className='cell skel' />
+                <span className='cell skel short' />
+                <span className='cell skel' />
+              </>
+            ) : (
+              <>
+                {overview.tomorrow.length === 0 &&
+                  tomorrowExtras.length === 0 && <em>Libre mañana ✔</em>}
+                {overview.tomorrow.map(r => (
+                  <span key={r.id} className='cell dim'>
+                    {r.tema}
+                  </span>
+                ))}
+                {tomorrowExtras.map(r =>
+                  isAdmin ? (
+                    <button
+                      key={r.id}
+                      className='cell fill'
+                      title='Extra de mañana (aleatorio): repásalo y su fecha oficial avanza a la siguiente del Excel'
+                      onClick={() => markReviewed(r)}
+                    >
+                      {r.tema}
+                    </button>
+                  ) : (
+                    <span
+                      key={r.id}
+                      className='cell fill'
+                      title='Extra de mañana (aleatorio): para repasarla necesitas entrar como admin'
+                    >
+                      {r.tema}
+                    </span>
+                  )
+                )}
+              </>
             )}
           </div>
         </div>
@@ -390,7 +415,16 @@ export const Scheduler = () => {
           que pasarán hasta el repaso siguiente.
         </p>
         <ul className='rows'>
-          {(rows ?? []).map(r => {
+          {loading
+            ? [0, 1, 2, 3, 4, 5, 6].map(i => (
+                <li key={i} className='row' aria-hidden='true'>
+                  <span className='skel skel-tema' />
+                  <span className='skel skel-chip' />
+                  <span className='skel skel-gap' />
+                  <span className='skel skel-act' />
+                </li>
+              ))
+            : (rows ?? []).map(r => {
             const dueToday = r.proxima_fecha === today;
             return (
               <li key={r.id} className='row'>
@@ -456,8 +490,7 @@ export const Scheduler = () => {
                 </span>
               </li>
             );
-          })}
-          {!rows && !loadError && <li>Cargando…</li>}
+            })}
           {rows && rows.length === 0 && !loadError && <li>Sin temas</li>}
         </ul>
       </section>

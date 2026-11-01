@@ -3,7 +3,7 @@ import { Scheduler } from '@/features/spaced-repetition-scheduler/scheduler';
 import CodeButton from '@/components/code-button.astro';
 ---
 
-<Scheduler client:only='react' />
+<Scheduler client:load />
 
 <CodeButton
   bottom={true}

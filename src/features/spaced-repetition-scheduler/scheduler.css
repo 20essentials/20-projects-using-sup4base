@@ -180,6 +180,66 @@ select:focus-visible {
   transform: translateX(0.2vmax);
 }
 
+/* ========================= SKELETON ========================= */
+.skel {
+  display: block;
+  border-radius: 0.4vmax;
+  height: 1vmax;
+  background: linear-gradient(
+    90deg,
+    #ffffff0d 25%,
+    #ffffff22 50%,
+    #ffffff0d 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.cell.skel {
+  height: 1.7vmax;
+  cursor: default;
+  animation-delay: 0.15s;
+}
+
+.cell.skel.short {
+  width: 55%;
+  animation-delay: 0.3s;
+}
+
+.skel-tema {
+  animation-delay: 0.05s;
+}
+
+.skel-chip {
+  width: 70%;
+  animation-delay: 0.15s;
+}
+
+.skel-gap {
+  width: 55%;
+  justify-self: center;
+  animation-delay: 0.25s;
+}
+
+.skel-act {
+  width: 65%;
+  justify-self: end;
+  animation-delay: 0.35s;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel {
+    animation: none;
+    background: #ffffff14;
+  }
+}
+
 /* ========================= AGENDA ========================= */
 .agenda {
   width: min(150vmax, 100%);
