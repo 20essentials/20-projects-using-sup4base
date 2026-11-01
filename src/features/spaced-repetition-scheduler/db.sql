@@ -19,6 +19,11 @@
 --   Postgres, nunca en el cliente): avanza al SIGUIENTE date del Excel.
 --   Al pasar la última fecha del Excel la agenda se extiende con saltos
 --   de +50 días (750, 800, 850…): SIEMPRE hay fecha futura.
+-- - EXTRAS: si para mañana hay menos de 3 repasos, el cliente saca filas
+--   aleatorias de futuro y las marca con extra_fecha (PERSISTIDO).
+--   Repasar una extra consume su fecha oficial del Excel (la que tenía
+--   más a futuro) y pasa a la siguiente; si no se repasa, sigue
+--   pendiente (se ve en HOY/MAÑANA hasta que se ejecute).
 -- - Temas nuevos que agregues a mano arrancan MAÑANA (acabas de
 --   estudiarlos hoy) y usan la escala acumulada del CULT SMART 1.
 -- ⚠️ Recuerda cambiar tu password en scheduler_secret() ANTES de ejecutar.
@@ -37,6 +42,7 @@ drop function if exists scheduler_add_topic(smallint, text, text);
 drop function if exists scheduler_mark_reviewed(uuid, text);
 drop function if exists scheduler_rename_topic(uuid, text, text);
 drop function if exists scheduler_delete_topic(uuid, text);
+drop function if exists scheduler_pull_extra(uuid, date, text);
 drop function if exists scheduler_check_password(text);
 drop function if exists scheduler_ladder();
 drop function if exists scheduler_secret();
@@ -86,6 +92,7 @@ create table project_22_scheduler (
   tema text not null unique,
   streak int not null default 0, -- repasos ya hechos (0 = aún ninguno)
   fechas date[] not null,        -- TODAS las fechas de repaso del tema (del Excel)
+  extra_fecha date,              -- "extra de mañana" asignada: fecha en que toca; NULL = fila regular
   proxima_fecha date generated always as ( -- = fechas[streak + 1]
     fechas[least(streak + 1, coalesce(array_length(fechas, 1), 1))]
   ) stored,
