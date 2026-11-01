@@ -1,7 +1,7 @@
 ---
-import CodeButton from '@/components/code-button.astro';
 import Layout from '@/layouts/layout.astro';
 import { supabase } from '@/lib/supabase';
+import { Aurora } from '@/features/global-todo-list/aurora';
 
 export type Task = {
   id: number;
@@ -15,110 +15,1831 @@ const { data } = await supabase
   .order('id', { ascending: false });
 
 const tasks = (data ?? []) as Task[];
+const completedTasks = tasks.filter(task => task.done).length;
+const completion = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
 ---
 
-<Layout title='Global Todo List'>
-  <section class='am-container'>
-    <h1>✅ Global Todo List (Public Read · Sign in with Google to Edit)</h1>
-    <br />
+<Layout title='Global Todo List | GX Workspace'>
+  <div class='gx-app'>
+    <aside class='gx-rail' aria-label='Workspace navigation'>
+      <a class='gx-logo' href='/' aria-label='20 Projects home'>
+        <span>G</span>
+      </a>
+      <div class='rail-rule'></div>
+      <a class='rail-icon' href='/' title='Home' aria-label='Home'>
+        <svg viewBox='0 0 24 24' aria-hidden='true'><path d='m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z' /></svg>
+      </a>
+      <a class='rail-icon active' href='/global-todo-list/' title='Global Todo List' aria-label='Global Todo List' aria-current='page'>
+        <svg viewBox='0 0 24 24' aria-hidden='true'><rect x='4' y='4' width='16' height='16' rx='4' /><path d='m8 12 2.5 2.5L16 9' /></svg>
+        <span class='rail-indicator'></span>
+      </a>
+      <a class='rail-icon' href='/spaced-repetition-scheduler/' title='Study scheduler' aria-label='Study scheduler'>
+        <svg viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='8.5' /><path d='M12 7v5l3 2' /></svg>
+      </a>
+      <a class='rail-icon' href='/pixel-art/' title='Pixel studio' aria-label='Pixel studio'>
+        <svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z' /></svg>
+      </a>
+      <div class='rail-spacer'></div>
+      <span class='rail-online' title='Workspace online'><span></span></span>
+      <span class='rail-avatar' aria-label='Guest profile'>G</span>
+    </aside>
 
-    <p class='am-auth-note'>
-      Reading is public — sign in with Google to add or check a task.
-    </p>
+    <div class='gx-window'>
+      <header class='browser-chrome'>
+        <div class='tab-strip'>
+          <div class='window-dots' aria-hidden='true'><span></span><span></span><span></span></div>
+          <div class='browser-tab'>
+            <span class='tab-mark'>G</span>
+            <span>Global Todo List</span>
+            <span class='tab-close' aria-hidden='true'>×</span>
+          </div>
+          <span class='new-tab' aria-hidden='true'>+</span>
+          <div class='chrome-spacer'></div>
+          <span class='chrome-status'><i></i> GX MODE</span>
+          <span class='chrome-more' aria-hidden='true'>•••</span>
+        </div>
+        <div class='address-row'>
+          <div class='nav-controls' aria-hidden='true'><span>‹</span><span>›</span><span>↻</span></div>
+          <div class='address-bar'>
+            <svg viewBox='0 0 24 24' aria-hidden='true'><path d='M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5z' /></svg>
+            <span>localhost:4321</span><span class='address-path'>/global-todo-list</span>
+            <span class='address-star' aria-hidden='true'>☆</span>
+          </div>
+          <div class='chrome-tools'><span class='tool-orbit' aria-hidden='true'>◉</span><span class='tool-menu' aria-hidden='true'>☰</span></div>
+        </div>
+      </header>
 
-    <form id='taskForm'>
-      <input type='text' id='taskInput' placeholder='New task...' />
-      <button type='submit'>Add</button>
-    </form>
+      <div class='gx-scene'>
+        <div class='scene-grid' aria-hidden='true'></div>
+        <div class='aurora-wrap' aria-hidden='true'>
+          <Aurora client:load />
+        </div>
 
-    <form id='taskList'>
-      {
-        tasks?.map(task => (
-          <label
-            class={`am-task  ${task.done ? 'am-done' : ''}`}
-            data-id={task.id}
-          >
-            {task.title}
-            <input
-              class={`am-checkbox-of-a-task`}
-              type='checkbox'
-              checked={task.done}
-            />
-          </label>
-        ))
-      }
-    </form>
-  </section>
+        <main class='workspace'>
+          <div class='workspace-bar'>
+            <div class='breadcrumb'><span>GX SPACE</span><b>/</b><span>PERSONAL</span><b>/</b><strong>DAILY QUESTS</strong></div>
+            <div class='sync-state'><span></span> LIVE SYNC <i>·</i> PUBLIC BOARD</div>
+          </div>
 
-  <CodeButton
-    bottom={true}
-    right={true}
-    href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/01/index.astro'
-  />
+          <section class='welcome-row'>
+            <div class='welcome-copy'>
+              <div class='section-tag'><span class='tag-pulse'></span> YOUR MISSION CONTROL</div>
+              <h1>Make today<br /><span>count.</span></h1>
+              <p>Your plans, your pace. Lock in and clear the board.</p>
+            </div>
+            <div class='welcome-emblem' aria-hidden='true'>
+              <div class='emblem-ring ring-outer'></div>
+              <div class='emblem-ring ring-inner'></div>
+              <div class='emblem-core'>GX</div>
+              <span class='emblem-star star-one'>✦</span>
+              <span class='emblem-star star-two'>✧</span>
+            </div>
+            <div class='welcome-side'>
+              <span class='side-label'>SESSION STATUS</span>
+              <span class='session-status'><i></i> IN THE ZONE</span>
+              <span class='session-caption'>One task at a time.</span>
+            </div>
+          </section>
+
+          <section class='dashboard-grid' aria-label='Task dashboard'>
+            <section class='mission-panel' aria-labelledby='board-title'>
+              <div class='panel-topline'>
+                <div class='panel-title-group'>
+                  <span class='panel-icon'>
+                    <svg viewBox='0 0 24 24' aria-hidden='true'><path d='M7 4h10M7 8h10M7 12h6M5 3h14v18H5z' /></svg>
+                  </span>
+                  <div>
+                    <span class='panel-eyebrow'>ACTIVE BOARD</span>
+                    <h2 id='board-title'>Daily quests <span class='task-count' id='taskCount'>{tasks.length}</span></h2>
+                  </div>
+                </div>
+                <span class='panel-live'><span></span> SYNCED</span>
+              </div>
+
+              <div class='board-progress'>
+                <div class='progress-copy'>
+                  <span>BOARD PROGRESS</span>
+                  <strong id='progressLabel'>{completedTasks} <small>/ {tasks.length} cleared</small></strong>
+                </div>
+                <div
+                  class='progress-track'
+                  role='progressbar'
+                  aria-label='Tasks completed'
+                  aria-valuemin='0'
+                  aria-valuemax={Math.max(tasks.length, 1)}
+                  aria-valuenow={completedTasks}
+                >
+                  <span id='progressBar' style={`width: ${completion}%`}></span>
+                </div>
+              </div>
+
+              <form id='taskForm' class='task-form'>
+                <label class='visually-hidden' for='taskInput'>Add a task to the board</label>
+                <span class='input-mark' aria-hidden='true'>+</span>
+                <input
+                  type='text'
+                  id='taskInput'
+                  placeholder='New quest...'
+                  autocomplete='off'
+                  maxlength='240'
+                />
+                <button type='submit'><span>ADD QUEST</span><b aria-hidden='true'>↗</b></button>
+              </form>
+
+              <div class='task-list-heading'>
+                <span>QUEST LOG</span>
+                <span class='list-hint'>CLICK A TASK TO CLEAR IT</span>
+              </div>
+
+              <div id='taskList' class='task-list' aria-live='polite'>
+                {
+                  tasks.length ? tasks.map((task, index) => (
+                    <label class={`task-row ${task.done ? 'is-done' : ''}`} data-id={task.id}>
+                      <input
+                        class='am-checkbox-of-a-task'
+                        type='checkbox'
+                        checked={task.done}
+                        aria-label={`Mark ${task.title} as ${task.done ? 'not done' : 'done'}`}
+                      />
+                      <span class='task-check' aria-hidden='true'><b>✓</b></span>
+                      <span class='task-index'>{String(index + 1).padStart(2, '0')}</span>
+                      <span class='task-title'>{task.title}</span>
+                      <span class='task-arrow' aria-hidden='true'>↗</span>
+                    </label>
+                  )) : (
+                    <div class='empty-state' id='emptyState'>
+                      <span class='empty-symbol' aria-hidden='true'>✳</span>
+                      <strong>Nothing on your radar.</strong>
+                      <span>Add your first quest and get moving.</span>
+                    </div>
+                  )
+                }
+              </div>
+
+              <div class='board-footer'>
+                <span><i></i> PUBLIC VIEW <b>·</b> Sign in with Google to edit your board</span>
+                <span class='footer-provider'>POWERED BY <strong>SUPABASE</strong></span>
+              </div>
+            </section>
+
+            <aside class='side-panel' aria-label='Session overview'>
+              <section class='hud-card completion-card'>
+                <div class='hud-heading'><span>COMPLETION</span><span class='hud-dots'>•••</span></div>
+                <div class='completion-content'>
+                  <div
+                    class='completion-ring'
+                    id='completionRing'
+                    style={`--completion: ${completion}%`}
+                    aria-label={`${completion}% of tasks complete`}
+                  >
+                    <div><strong id='completionValue'>{completion}<small>%</small></strong><span>COMPLETE</span></div>
+                  </div>
+                  <div class='completion-copy'>
+                    <strong id='completedCount'>{completedTasks}</strong>
+                    <span>quests<br />cleared</span>
+                    <div class='mini-divider'></div>
+                    <strong id='remainingCount'>{tasks.length - completedTasks}</strong>
+                    <span>still in<br />the queue</span>
+                  </div>
+                </div>
+                <div class='xp-line'><span>DAILY XP</span><span><b id='xpValue'>{Math.min(completedTasks * 50, 500)}</b> / 500 XP</span></div>
+                <div class='xp-track'><span id='xpBar' style={`width: ${Math.min(completedTasks * 10, 100)}%`}></span></div>
+              </section>
+
+              <section class='hud-card focus-card'>
+                <div class='hud-heading'><span>GX CONTROL</span><span class='control-status'>ACTIVE</span></div>
+                <div class='focus-visual' aria-hidden='true'>
+                  <div class='focus-orbit orbit-a'></div>
+                  <div class='focus-orbit orbit-b'></div>
+                  <div class='focus-core'><span>FOCUS</span><b>ON</b></div>
+                  <span class='orbit-node node-a'></span><span class='orbit-node node-b'></span>
+                </div>
+                <h3>Stay in the zone.</h3>
+                <p>Keep your focus on the next quest. The rest can wait.</p>
+                <div class='focus-chip'><span></span> DISTRACTIONS: MUTED</div>
+              </section>
+
+              <div class='side-quote'>
+                <span class='quote-mark'>“</span>
+                <p>Progress is a power-up.</p>
+                <span class='quote-caption'>ONE CLEAR AT A TIME</span>
+              </div>
+            </aside>
+          </section>
+
+          <footer class='workspace-footer'>
+            <span><b>GX WORKSPACE</b> <i>—</i> YOUR SPACE. YOUR RULES.</span>
+            <span class='footer-keys'><kbd>ENTER</kbd> ADD QUEST <span>·</span> <kbd>SPACE</kbd> CLEAR</span>
+            <a
+              class='source-link'
+              href='https://github.com/20essentials/20-projects-using-sup4base/blob/main/src/pages/global-todo-list/index.astro'
+              target='_blank'
+              rel='noreferrer'
+            >VIEW SOURCE <b aria-hidden='true'>↗</b></a>
+          </footer>
+        </main>
+      </div>
+    </div>
+  </div>
+
 </Layout>
 
-<style>
-  body {
-    background-image: url('/assets/project-1-bg.avif');
-    background-size: cover;
-    background-position: center;
+<style is:global>
+  .gx-app {
+    --gx-bg: #09090c;
+    --gx-surface: #111115;
+    --gx-raised: #17171c;
+    --gx-line: #ffffff12;
+    --gx-muted: #85858e;
+    --gx-text: #f5f4f4;
+    --gx-red: #fa2742;
+    --gx-pink: #ff4058;
+    position: relative;
+    display: flex;
+    width: 100%;
     min-height: 100vh;
+    overflow: hidden;
+    color: var(--gx-text);
+    color-scheme: dark;
+    background: var(--gx-bg);
+    font-family: 'Geist', 'Segoe UI', sans-serif;
   }
 
-  button[type='submit'] {
-    background-color: #fff8;
-    padding: 0.6vmax 1vmax;
-    color: #111;
+  .gx-app *,
+  .gx-app *::before,
+  .gx-app *::after {
+    box-sizing: border-box;
+  }
 
-    &:active {
-      opacity: 0.5;
+  body:has(.gx-app) {
+    --sb-track-color: #0c0c10;
+    --sb-thumb-color: #fa2742;
+  }
+
+  body:has(.gx-app)::-webkit-scrollbar-thumb {
+    border: 2px solid #0c0c10;
+    border-radius: 999px;
+    background: #fa2742;
+  }
+
+  body:has(.gx-app)::-webkit-scrollbar-thumb:hover {
+    background: #ff5268;
+  }
+
+  .gx-rail {
+    z-index: 4;
+    display: flex;
+    width: 62px;
+    flex: 0 0 62px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0 16px;
+    border-right: 1px solid #ffffff0d;
+    background: #0b0b0e;
+  }
+
+  .gx-logo,
+  .rail-icon,
+  .rail-avatar {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    place-items: center;
+    border-radius: 12px;
+  }
+
+  .gx-logo {
+    border: 1px solid #fa274247;
+    color: white;
+    background: linear-gradient(145deg, #f52742, #9b1428);
+    box-shadow: 0 0 20px #fa27422b, inset 0 1px #ffffff38;
+    font-size: 19px;
+    font-style: italic;
+    font-weight: 900;
+    text-decoration: none;
+    transform: skew(-5deg);
+  }
+
+  .rail-rule {
+    width: 26px;
+    height: 1px;
+    margin: 3px 0;
+    background: #ffffff16;
+  }
+
+  .rail-icon {
+    position: relative;
+    color: #777780;
+    transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+  }
+
+  .rail-icon svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+
+  .rail-icon:hover {
+    transform: translateY(-1px);
+    color: #f1f0f2;
+    background: #ffffff0b;
+  }
+
+  .rail-icon.active {
+    color: #ff5266;
+    background: #fa27421b;
+    box-shadow: inset 0 0 0 1px #fa274226;
+  }
+
+  .rail-indicator {
+    position: absolute;
+    left: -12px;
+    width: 2px;
+    height: 17px;
+    border-radius: 0 4px 4px 0;
+    background: var(--gx-red);
+    box-shadow: 0 0 10px #fa2742b8;
+  }
+
+  .rail-spacer {
+    flex: 1;
+  }
+
+  .rail-online {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+  }
+
+  .rail-online span,
+  .sync-state > span,
+  .panel-live > span,
+  .board-footer > span:first-child i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #61e6a2;
+    box-shadow: 0 0 10px #61e67c8c;
+  }
+
+  .rail-avatar {
+    border: 1px solid #ffffff1b;
+    color: #b6b5bd;
+    background: linear-gradient(145deg, #29292f, #18181c);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .gx-window {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .browser-chrome {
+    z-index: 3;
+    flex: 0 0 auto;
+    border-bottom: 1px solid #ffffff0e;
+    background: #0d0d10;
+  }
+
+  .tab-strip,
+  .address-row {
+    display: flex;
+    align-items: center;
+    padding: 0 17px;
+  }
+
+  .tab-strip {
+    height: 42px;
+    gap: 11px;
+  }
+
+  .window-dots {
+    display: flex;
+    gap: 6px;
+    margin-right: 13px;
+  }
+
+  .window-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34343b;
+  }
+
+  .window-dots span:first-child {
+    background: #fa2742;
+  }
+
+  .browser-tab {
+    display: flex;
+    width: min(230px, 42vw);
+    height: 32px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 11px;
+    border: 1px solid #ffffff0b;
+    border-bottom-color: #111115;
+    border-radius: 9px 9px 0 0;
+    color: #dad9df;
+    background: #17171b;
+    font-size: 11px;
+  }
+
+  .tab-mark {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    place-items: center;
+    border-radius: 5px;
+    color: #fff;
+    background: #ee2943;
+    font-size: 9px;
+    font-weight: 900;
+  }
+
+  .tab-close {
+    margin-left: auto;
+    color: #85858e;
+    font-size: 17px;
+  }
+
+  .new-tab,
+  .chrome-more {
+    color: #86858e;
+    font-size: 17px;
+  }
+
+  .chrome-spacer {
+    flex: 1;
+  }
+
+  .chrome-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #9998a2;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .chrome-status i,
+  .sync-state > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fa2742;
+    box-shadow: 0 0 9px #fa2742a6;
+  }
+
+  .chrome-more {
+    margin-left: 14px;
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  .address-row {
+    height: 45px;
+    gap: 16px;
+    border-top: 1px solid #ffffff06;
+  }
+
+  .nav-controls,
+  .chrome-tools {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    color: #74737c;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .address-bar {
+    display: flex;
+    width: min(650px, 72%);
+    height: 29px;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+    padding: 0 11px;
+    border: 1px solid #ffffff0b;
+    border-radius: 8px;
+    color: #adacb5;
+    background: #17171b;
+    font-size: 10px;
+  }
+
+  .address-bar svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: #777780;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+
+  .address-path {
+    color: #6f6e77;
+  }
+
+  .address-star {
+    margin-left: auto;
+    color: #888790;
+    font-size: 15px;
+  }
+
+  .chrome-tools {
+    gap: 17px;
+    font-size: 15px;
+  }
+
+  .tool-orbit {
+    color: #ff425b;
+  }
+
+  .gx-scene {
+    position: relative;
+    isolation: isolate;
+    min-height: calc(100vh - 87px);
+    flex: 1;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 68% 0%, #3510186b 0, transparent 38%),
+      radial-gradient(ellipse at 100% 80%, #26132c50 0, transparent 42%),
+      #0c0c10;
+  }
+
+  .scene-grid {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    opacity: 0.12;
+    background-image:
+      linear-gradient(#ffffff09 1px, transparent 1px),
+      linear-gradient(90deg, #ffffff09 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+    pointer-events: none;
+  }
+
+  .aurora-wrap {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: min(64vh, 590px);
+    opacity: 0.52;
+    mask-image: linear-gradient(to bottom, black 0%, #000b 43%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .gx-aurora {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .gx-aurora canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .workspace {
+    position: relative;
+    width: min(100%, 1370px);
+    margin: 0 auto;
+    padding: 26px clamp(22px, 4vw, 62px) 25px;
+  }
+
+  .workspace-bar,
+  .breadcrumb,
+  .sync-state,
+  .welcome-row,
+  .panel-topline,
+  .panel-title-group,
+  .task-list-heading,
+  .board-footer,
+  .workspace-footer {
+    display: flex;
+    align-items: center;
+  }
+
+  .workspace-bar {
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+    gap: 10px;
+    color: #8e8d96;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+  }
+
+  .breadcrumb b {
+    color: #4a4951;
+    font-weight: 400;
+  }
+
+  .breadcrumb strong {
+    color: #d6d4da;
+    font-weight: 800;
+  }
+
+  .sync-state {
+    gap: 8px;
+    color: #9c9ba3;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    white-space: nowrap;
+  }
+
+  .sync-state > span {
+    width: 6px;
+    height: 6px;
+    background: #61e6a2;
+    box-shadow: 0 0 9px #61e6a280;
+  }
+
+  .sync-state i {
+    color: #55545d;
+    font-style: normal;
+  }
+
+  .welcome-row {
+    position: relative;
+    min-height: 250px;
+    justify-content: space-between;
+    gap: 25px;
+    padding: 33px 16px 27px 0;
+  }
+
+  .welcome-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ff6275;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+  }
+
+  .tag-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gx-red);
+    box-shadow: 0 0 12px #fa2742;
+  }
+
+  .welcome-copy h1 {
+    margin: 13px 0 8px;
+    color: #f8f6f7;
+    font-size: clamp(44px, 6vw, 74px);
+    font-weight: 900;
+    letter-spacing: -0.075em;
+    line-height: 0.89;
+    text-shadow: 0 4px 45px #0008;
+  }
+
+  .welcome-copy h1 span {
+    color: #fa344e;
+    text-shadow: 0 0 30px #fa274247;
+  }
+
+  .welcome-copy p {
+    margin: 14px 0 0;
+    color: #aaa9b1;
+    font-size: 12px;
+    letter-spacing: 0.015em;
+  }
+
+  .welcome-emblem {
+    position: absolute;
+    top: 26px;
+    left: 47%;
+    width: 205px;
+    height: 205px;
+    transform: translateX(-50%);
+    opacity: 0.66;
+    pointer-events: none;
+  }
+
+  .emblem-ring {
+    position: absolute;
+    inset: 14px;
+    border: 1px solid #fa27423a;
+    border-radius: 50%;
+    box-shadow: 0 0 35px #fa27420e, inset 0 0 35px #fa27420b;
+    animation: ring-turn 28s linear infinite;
+  }
+
+  .ring-inner {
+    inset: 34px;
+    border-color: #ff40582c;
+    border-style: dashed;
+    animation-direction: reverse;
+    animation-duration: 35s;
+  }
+
+  .emblem-core {
+    position: absolute;
+    inset: 67px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #fa274241;
+    border-radius: 50%;
+    color: #ff4058;
+    background: radial-gradient(circle, #fa27421c, #111115cc 70%);
+    box-shadow: 0 0 35px #fa274228, inset 0 0 20px #fa27421a;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+
+  .emblem-star {
+    position: absolute;
+    color: #ff7281;
+    text-shadow: 0 0 15px #fa2742;
+  }
+
+  .star-one {
+    top: 21px;
+    right: 38px;
+    font-size: 17px;
+  }
+
+  .star-two {
+    bottom: 30px;
+    left: 35px;
+    font-size: 21px;
+  }
+
+  .welcome-side {
+    z-index: 1;
+    display: flex;
+    min-width: 142px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
+    align-self: flex-end;
+    padding-bottom: 13px;
+  }
+
+  .side-label,
+  .panel-eyebrow,
+  .hud-heading,
+  .board-progress .progress-copy > span,
+  .task-list-heading,
+  .xp-line,
+  .quote-caption {
+    color: #898891;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  .session-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid #fa27422c;
+    border-radius: 6px;
+    color: #ff7382;
+    background: #fa274210;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+  }
+
+  .session-status i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fa2742;
+    box-shadow: 0 0 7px #fa2742;
+  }
+
+  .session-caption {
+    color: #85848d;
+    font-size: 10px;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(250px, 0.78fr);
+    align-items: start;
+    gap: 16px;
+  }
+
+  .mission-panel,
+  .hud-card {
+    border: 1px solid #ffffff12;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #161619f2, #111114f2);
+    box-shadow: 0 18px 55px #0005, inset 0 1px #ffffff08;
+    backdrop-filter: blur(18px);
+  }
+
+  .mission-panel {
+    min-width: 0;
+    padding: 21px 23px 15px;
+  }
+
+  .panel-topline {
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .panel-title-group {
+    min-width: 0;
+    gap: 12px;
+  }
+
+  .panel-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    place-items: center;
+    border: 1px solid #fa274229;
+    border-radius: 9px;
+    color: #ff5065;
+    background: #fa27420e;
+  }
+
+  .panel-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+
+  .panel-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 8px;
+  }
+
+  .panel-title-group h2 {
+    margin: 0;
+    color: #f1eff2;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+  }
+
+  .task-count {
+    display: inline-grid;
+    min-width: 21px;
+    height: 20px;
+    margin-left: 3px;
+    padding: 0 5px;
+    place-items: center;
+    border: 1px solid #ffffff18;
+    border-radius: 5px;
+    color: #c4c2c9;
+    background: #ffffff08;
+    font-size: 10px;
+    vertical-align: 2px;
+  }
+
+  .panel-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #8f8e98;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+  }
+
+  .panel-live > span {
+    width: 5px;
+    height: 5px;
+  }
+
+  .board-progress {
+    margin: 22px 0 18px;
+    padding: 13px 0 0;
+    border-top: 1px solid #ffffff0d;
+  }
+
+  .progress-copy {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .board-progress .progress-copy > span {
+    font-size: 8px;
+  }
+
+  .progress-copy > strong {
+    color: #f2f0f3;
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .progress-copy small {
+    color: #87858e;
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .progress-track,
+  .xp-track {
+    height: 4px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #ffffff12;
+  }
+
+  .progress-track {
+    margin-top: 10px;
+  }
+
+  .progress-track span,
+  .xp-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #e81f3d, #ff6477);
+    box-shadow: 0 0 12px #fa274276;
+    transition: width 350ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .task-form {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 6px 5px 13px;
+    border: 1px solid #ffffff16;
+    border-radius: 8px;
+    background: #0d0d10;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .task-form:focus-within {
+    border-color: #fa27425e;
+    box-shadow: 0 0 0 3px #fa27420d, 0 0 23px #fa274212;
+  }
+
+  .input-mark {
+    color: #fa5265;
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  .task-form input {
+    min-width: 0;
+    flex: 1;
+    padding: 9px 0;
+    border: 0;
+    outline: none;
+    color: #f3f1f3;
+    background: transparent;
+    font: inherit;
+    font-size: 11px;
+  }
+
+  .task-form input::placeholder {
+    color: #77757e;
+  }
+
+  .task-form button {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    padding: 0 13px;
+    border: 1px solid #ff5b6d59;
+    border-radius: 6px;
+    color: white;
+    background: linear-gradient(135deg, #ed2943, #ca1832);
+    box-shadow: 0 4px 14px #fa274226, inset 0 1px #ffffff38;
+    cursor: pointer;
+    font: inherit;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .task-form button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.13);
+    box-shadow: 0 5px 18px #fa27424d, inset 0 1px #ffffff38;
+  }
+
+  .task-form button:active {
+    transform: scale(0.97);
+  }
+
+  .task-form button b {
+    font-size: 13px;
+  }
+
+  .task-form button:focus-visible,
+  .task-form input:focus-visible,
+  .task-row input:focus-visible {
+    outline: 2px solid #ff6275;
+    outline-offset: 3px;
+  }
+
+  .task-list-heading {
+    justify-content: space-between;
+    margin: 22px 0 9px;
+    font-size: 8px;
+  }
+
+  .list-hint {
+    color: #64636b;
+    font-size: 7px;
+  }
+
+  .task-list {
+    display: flex;
+    max-height: 340px;
+    flex-direction: column;
+    gap: 6px;
+    overflow: auto;
+    padding: 1px 3px 1px 0;
+    scrollbar-color: #fa2742 transparent;
+    scrollbar-width: thin;
+  }
+
+  .task-list::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .task-list::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: #fa2742;
+    background-clip: padding-box;
+  }
+
+  .task-list::-webkit-scrollbar-thumb:hover {
+    background: #ff5268;
+    background-clip: padding-box;
+  }
+
+  .task-row {
+    position: relative;
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 11px;
+    border: 1px solid #ffffff0b;
+    border-radius: 7px;
+    background: #ffffff04;
+    cursor: pointer;
+    animation: row-in 260ms ease both;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .task-row:hover {
+    transform: translateX(3px);
+    border-color: #fa274232;
+    background: #fa274208;
+  }
+
+  .task-row input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .task-check {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    place-items: center;
+    border: 1px solid #ffffff35;
+    border-radius: 5px;
+    color: transparent;
+    background: #ffffff05;
+    transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+  }
+
+  .task-check b {
+    font-size: 10px;
+  }
+
+  .task-index {
+    color: #69676f;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .task-title {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    color: #dedce1;
+    font-size: 11px;
+    line-height: 1.5;
+    transition: color 160ms ease;
+  }
+
+  .task-arrow {
+    color: #5b5961;
+    font-size: 13px;
+    transition: color 160ms ease, transform 160ms ease;
+  }
+
+  .task-row:hover .task-arrow {
+    transform: translate(1px, -1px);
+    color: #ff6577;
+  }
+
+  .task-row:has(input:checked) {
+    border-color: #fa27421f;
+    background: #fa274206;
+  }
+
+  .task-row:has(input:checked) .task-check {
+    border-color: #fa4059;
+    color: #fff;
+    background: #e5233e;
+    box-shadow: 0 0 12px #fa27423b;
+  }
+
+  .task-row:has(input:checked) .task-title {
+    color: #7e7b84;
+    text-decoration: line-through;
+    text-decoration-color: #fa526579;
+  }
+
+  .task-row:has(input:focus-visible) {
+    outline: 2px solid #ff6275;
+    outline-offset: 2px;
+  }
+
+  .empty-state {
+    display: flex;
+    min-height: 148px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px dashed #ffffff20;
+    border-radius: 8px;
+    color: #85838d;
+    background: #ffffff03;
+    text-align: center;
+  }
+
+  .empty-symbol {
+    margin-bottom: 2px;
+    color: #fa5265;
+    font-size: 23px;
+    text-shadow: 0 0 20px #fa274280;
+  }
+
+  .empty-state strong {
+    color: #e4e1e6;
+    font-size: 11px;
+  }
+
+  .empty-state > span:last-child {
+    font-size: 10px;
+  }
+
+  .board-footer {
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 13px;
+    border-top: 1px solid #ffffff0c;
+    color: #7a7881;
+    font-size: 8px;
+  }
+
+  .board-footer > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .board-footer > span:first-child i {
+    width: 5px;
+    height: 5px;
+  }
+
+  .board-footer > span:first-child b {
+    color: #504e56;
+  }
+
+  .footer-provider {
+    white-space: nowrap;
+  }
+
+  .footer-provider strong {
+    color: #9a999f;
+  }
+
+  .side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hud-card {
+    padding: 17px;
+  }
+
+  .hud-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 8px;
+  }
+
+  .hud-dots {
+    color: #77757e;
+    letter-spacing: 2px;
+  }
+
+  .completion-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 16px;
+    padding: 20px 2px 18px;
+  }
+
+  .completion-ring {
+    display: grid;
+    width: 112px;
+    height: 112px;
+    flex: 0 0 112px;
+    place-items: center;
+    border-radius: 50%;
+    background: conic-gradient(#fa334e var(--completion), #ffffff12 0);
+    box-shadow: 0 0 28px #fa27421b;
+    transition: background 250ms ease;
+  }
+
+  .completion-ring > div {
+    display: flex;
+    width: 91px;
+    height: 91px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ffffff0b;
+    border-radius: 50%;
+    background: #151518;
+  }
+
+  .completion-ring strong {
+    color: #f6f3f5;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.06em;
+  }
+
+  .completion-ring strong small {
+    color: #ff5368;
+    font-size: 13px;
+  }
+
+  .completion-ring > div > span {
+    margin-top: -1px;
+    color: #8d8a93;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+  }
+
+  .completion-copy {
+    display: grid;
+    grid-template-columns: 31px 1fr;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+
+  .completion-copy strong {
+    color: #f1eef1;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .completion-copy > span {
+    color: #929099;
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .mini-divider {
+    grid-column: 1 / -1;
+    height: 1px;
+    margin: 6px 0;
+    background: #ffffff12;
+  }
+
+  .xp-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 8px;
+  }
+
+  .xp-line > span:last-child {
+    color: #8d8a93;
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+
+  .xp-line b {
+    color: #f2eff2;
+  }
+
+  .xp-track {
+    height: 3px;
+  }
+
+  .xp-track span {
+    background: linear-gradient(90deg, #a323d0, #f34c78);
+    box-shadow: 0 0 10px #e349754c;
+  }
+
+  .focus-card {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 50%, #5010202b, transparent 62%),
+      linear-gradient(145deg, #161619f2, #111114f2);
+  }
+
+  .control-status {
+    padding: 4px 6px;
+    border: 1px solid #fa274228;
+    border-radius: 4px;
+    color: #ff6a7c;
+    background: #fa274210;
+    font-size: 7px;
+  }
+
+  .focus-visual {
+    position: relative;
+    width: 130px;
+    height: 110px;
+    margin: 7px auto 0;
+  }
+
+  .focus-orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 93px;
+    height: 45px;
+    border: 1px solid #fa40564a;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(-26deg);
+    box-shadow: 0 0 18px #fa274219;
+  }
+
+  .orbit-b {
+    width: 78px;
+    height: 74px;
+    border-color: #a64b963e;
+    transform: translate(-50%, -50%) rotate(54deg);
+  }
+
+  .focus-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    width: 50px;
+    height: 50px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #fa405658;
+    border-radius: 50%;
+    background: radial-gradient(circle, #38121b, #151215);
+    box-shadow: 0 0 25px #fa274239, inset 0 0 12px #fa27421c;
+    transform: translate(-50%, -50%);
+  }
+
+  .focus-core span {
+    color: #a29da4;
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+  }
+
+  .focus-core b {
+    margin-top: 2px;
+    color: #ff6678;
+    font-size: 12px;
+    letter-spacing: 0.13em;
+  }
+
+  .orbit-node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff5b73;
+    box-shadow: 0 0 10px #fa2742;
+  }
+
+  .node-a {
+    top: 26px;
+    left: 20px;
+  }
+
+  .node-b {
+    right: 18px;
+    bottom: 25px;
+    width: 4px;
+    height: 4px;
+    background: #c56ce8;
+    box-shadow: 0 0 9px #bd54ef;
+  }
+
+  .focus-card h3 {
+    margin: 2px 0 5px;
+    color: #e9e6ea;
+    font-size: 12px;
+    font-weight: 750;
+    text-align: center;
+  }
+
+  .focus-card p {
+    max-width: 225px;
+    margin: 0 auto;
+    color: #8f8c95;
+    font-size: 9px;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .focus-chip {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    gap: 7px;
+    margin: 13px auto 0;
+    padding: 6px 8px;
+    border: 1px solid #ffffff10;
+    border-radius: 5px;
+    color: #a09da5;
+    background: #ffffff05;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .focus-chip span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fa4058;
+    box-shadow: 0 0 8px #fa2742;
+  }
+
+  .side-quote {
+    position: relative;
+    padding: 13px 15px 12px;
+    border-left: 2px solid #fa344e88;
+    background: linear-gradient(90deg, #fa27420c, transparent);
+  }
+
+  .quote-mark {
+    position: absolute;
+    top: 2px;
+    left: 12px;
+    color: #fa4058;
+    font-family: Georgia, serif;
+    font-size: 31px;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  .side-quote p {
+    margin: 3px 0 6px 18px;
+    color: #d5d1d8;
+    font-size: 10px;
+    font-style: italic;
+  }
+
+  .quote-caption {
+    margin-left: 18px;
+    color: #77747e;
+    font-size: 7px;
+  }
+
+  .workspace-footer {
+    justify-content: space-between;
+    gap: 12px;
+    padding: 17px 2px 0;
+    color: #73717a;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .workspace-footer b {
+    color: #a3a0a8;
+  }
+
+  .workspace-footer i {
+    padding: 0 5px;
+    color: #fa4058;
+    font-style: normal;
+  }
+
+  .footer-keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-keys kbd {
+    padding: 3px 5px;
+    border: 1px solid #ffffff18;
+    border-radius: 4px;
+    color: #aaa7af;
+    background: #ffffff08;
+    font: inherit;
+    font-size: 7px;
+  }
+
+  .footer-keys > span {
+    color: #504e56;
+  }
+
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border: 1px solid #ffffff14;
+    border-radius: 5px;
+    color: #aaa7af;
+    background: #ffffff06;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .source-link:hover {
+    border-color: #fa27424a;
+    color: #ff6577;
+    background: #fa27420c;
+  }
+
+  .source-link b {
+    font-size: 12px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @keyframes ring-turn {
+    to {
+      transform: rotate(360deg);
     }
   }
 
-  html {
-    color-scheme: dark light;
+  @keyframes row-in {
+    from {
+      transform: translateY(4px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
-  .am-container {
-    font-family: system-ui, sans-serif;
-    max-width: 500px;
-    margin: 2rem auto;
-    padding: 1rem;
-  }
-  .am-auth-note {
-    font-size: 0.85rem;
-    opacity: 0.8;
-    margin: 0 0 1rem;
-  }
-  form {
-    display: flex;
-    gap: 0.5rem;
-  }
-  input[type='text'] {
-    flex: 1;
-    padding: 0.5rem;
+  @media (max-width: 900px) {
+    .dashboard-grid {
+      grid-template-columns: minmax(0, 1fr) 250px;
+    }
+
+    .welcome-emblem {
+      left: 54%;
+      opacity: 0.43;
+    }
+
+    .mission-panel {
+      padding-inline: 17px;
+    }
   }
 
-  #taskList {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 1vmax;
+  @media (max-width: 720px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .side-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+    }
+
+    .side-quote {
+      grid-column: 1 / -1;
+    }
+
+    .focus-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .focus-visual {
+      margin-block: 0;
+    }
   }
 
-  li {
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-</style>
+  @media (max-width: 520px) {
+    .gx-rail {
+      width: 49px;
+      flex-basis: 49px;
+    }
 
-<style is:global>
-  .am-task.am-done {
-    text-decoration: line-through;
-    opacity: 0.6;
+    .gx-logo,
+    .rail-icon,
+    .rail-avatar {
+      width: 34px;
+      height: 34px;
+      flex-basis: 34px;
+    }
+
+    .rail-indicator {
+      left: -8px;
+    }
+
+    .tab-strip,
+    .address-row {
+      padding-inline: 10px;
+    }
+
+    .window-dots {
+      gap: 4px;
+      margin-right: 1px;
+    }
+
+    .window-dots span {
+      width: 6px;
+      height: 6px;
+    }
+
+    .browser-tab {
+      width: min(185px, 48vw);
+      font-size: 9px;
+    }
+
+    .chrome-status {
+      display: none;
+    }
+
+    .nav-controls,
+    .chrome-tools {
+      gap: 8px;
+      font-size: 16px;
+    }
+
+    .address-bar {
+      width: auto;
+      flex: 1;
+      margin: 0;
+    }
+
+    .address-path,
+    .tool-menu,
+    .welcome-emblem,
+    .welcome-side,
+    .footer-keys {
+      display: none;
+    }
+
+    .workspace {
+      padding: 20px 14px 18px;
+    }
+
+    .workspace-bar {
+      align-items: flex-start;
+    }
+
+    .breadcrumb {
+      gap: 6px;
+      font-size: 7px;
+    }
+
+    .sync-state {
+      font-size: 7px;
+    }
+
+    .welcome-row {
+      min-height: 200px;
+      padding: 32px 0 24px;
+    }
+
+    .welcome-copy h1 {
+      font-size: clamp(46px, 13vw, 62px);
+    }
+
+    .welcome-copy p {
+      max-width: 270px;
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .mission-panel {
+      padding: 17px 13px 13px;
+    }
+
+    .task-list {
+      max-height: 45vh;
+    }
+
+    .list-hint {
+      font-size: 6px;
+    }
+
+    .board-footer {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .side-panel {
+      grid-template-columns: 1fr;
+    }
+
+    .completion-card {
+      max-width: none;
+    }
+
+    .focus-visual {
+      margin-block: 7px 0;
+    }
+
+    .workspace-footer {
+      font-size: 7px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gx-app *,
+    .gx-app *::before,
+    .gx-app *::after {
+      animation-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 </style>
 
@@ -141,6 +1862,39 @@ const tasks = (data ?? []) as Task[];
 
   const form = $<HTMLFormElement>('#taskForm');
   const input = $<HTMLInputElement>('#taskInput');
+  const taskList = $<HTMLDivElement>('#taskList');
+  const taskCount = $<HTMLElement>('#taskCount');
+  const progressLabel = $<HTMLElement>('#progressLabel');
+  const progressBar = $<HTMLSpanElement>('#progressBar');
+  const progressTrack = $<HTMLDivElement>('.progress-track');
+  const completionRing = $<HTMLDivElement>('#completionRing');
+  const completionValue = $<HTMLElement>('#completionValue');
+  const completedCount = $<HTMLElement>('#completedCount');
+  const remainingCount = $<HTMLElement>('#remainingCount');
+  const xpValue = $<HTMLElement>('#xpValue');
+  const xpBar = $<HTMLSpanElement>('#xpBar');
+
+  const updateProgress = () => {
+    const checkboxes = Array.from(
+      taskList.querySelectorAll<HTMLInputElement>('.am-checkbox-of-a-task')
+    );
+    const completed = checkboxes.filter(checkbox => checkbox.checked).length;
+    const total = checkboxes.length;
+    const percentage = total ? Math.round((completed / total) * 100) : 0;
+
+    taskCount.textContent = String(total);
+    progressLabel.innerHTML = `${completed} <small>/ ${total} cleared</small>`;
+    progressBar.style.width = `${percentage}%`;
+    progressTrack.setAttribute('aria-valuemax', String(Math.max(total, 1)));
+    progressTrack.setAttribute('aria-valuenow', String(completed));
+    completionRing.style.setProperty('--completion', `${percentage}%`);
+    completionRing.setAttribute('aria-label', `${percentage}% of tasks complete`);
+    completionValue.innerHTML = `${percentage}<small>%</small>`;
+    completedCount.textContent = String(completed);
+    remainingCount.textContent = String(total - completed);
+    xpValue.textContent = String(Math.min(completed * 50, 500));
+    xpBar.style.width = `${Math.min(completed * 10, 100)}%`;
+  };
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -161,16 +1915,42 @@ const tasks = (data ?? []) as Task[];
     if (!validated.success) return;
 
     const newTask = validated.data;
-    const taskList = $('#taskList');
+    $('#emptyState')?.remove();
+
     const newLabel = document.createElement('label');
-    newLabel.className = 'am-task';
+    newLabel.className = 'task-row';
     newLabel.dataset.id = String(newTask.id);
-    newLabel.innerHTML = `
-      ${newTask.title}
-      <input class="am-checkbox-of-a-task" type="checkbox" />
-    `;
+
+    const checkbox = document.createElement('input');
+    checkbox.className = 'am-checkbox-of-a-task';
+    checkbox.type = 'checkbox';
+    checkbox.setAttribute('aria-label', `Mark ${newTask.title} as done`);
+
+    const checkmark = document.createElement('span');
+    checkmark.className = 'task-check';
+    checkmark.setAttribute('aria-hidden', 'true');
+    checkmark.innerHTML = '<b>✓</b>';
+
+    const index = document.createElement('span');
+    index.className = 'task-index';
+    index.textContent = '01';
+
+    const taskTitle = document.createElement('span');
+    taskTitle.className = 'task-title';
+    taskTitle.textContent = newTask.title;
+
+    const arrow = document.createElement('span');
+    arrow.className = 'task-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '↗';
+
+    newLabel.append(checkbox, checkmark, index, taskTitle, arrow);
     taskList.prepend(newLabel);
+    taskList.querySelectorAll<HTMLElement>('.task-index').forEach((item, position) => {
+      item.textContent = String(position + 1).padStart(2, '0');
+    });
     input.value = '';
+    updateProgress();
   });
 
   document.addEventListener('change', async e => {
@@ -181,11 +1961,10 @@ const tasks = (data ?? []) as Task[];
     if (!(await ensureAuthenticated())) return;
 
     const done = target.checked;
-    const labelElement = target.closest('.am-task');
+    const labelElement = target.closest('.task-row');
     if (!labelElement) return;
 
     const idTask = Number(labelElement.getAttribute('data-id') ?? '');
-
     const { error } = await supabase
       .from('project_01_tasks')
       .update({ done })
@@ -196,10 +1975,11 @@ const tasks = (data ?? []) as Task[];
       return;
     }
 
-    if (done) {
-      labelElement.classList.add('am-done');
-    } else {
-      labelElement.classList.remove('am-done');
-    }
+    labelElement.classList.toggle('is-done', done);
+    target.setAttribute(
+      'aria-label',
+      `Mark ${labelElement.querySelector('.task-title')?.textContent ?? 'task'} as ${done ? 'not done' : 'done'}`
+    );
+    updateProgress();
   });
 </script>
