@@ -19,8 +19,12 @@ const tasks = (data ?? []) as Task[];
 
 <Layout title='Global Todo List'>
   <section class='am-container'>
-    <h1>✅ Global Todo List (Everyone in The World Can Edit It)</h1>
+    <h1>✅ Global Todo List (Public Read · Sign in with Google to Edit)</h1>
     <br />
+
+    <p class='am-auth-note'>
+      Reading is public — sign in with Google to add or check a task.
+    </p>
 
     <form id='taskForm'>
       <input type='text' id='taskInput' placeholder='New task...' />
@@ -81,6 +85,11 @@ const tasks = (data ?? []) as Task[];
     margin: 2rem auto;
     padding: 1rem;
   }
+  .am-auth-note {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0 0 1rem;
+  }
   form {
     display: flex;
     gap: 0.5rem;
@@ -115,6 +124,7 @@ const tasks = (data ?? []) as Task[];
 
 <script>
   import { supabase } from '@/lib/supabase';
+  import { ensureAuthenticated } from '@/lib/auth-guard';
   import { $ } from '@/lib/functions';
   import { z } from 'zod';
 
@@ -134,6 +144,7 @@ const tasks = (data ?? []) as Task[];
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (!(await ensureAuthenticated())) return;
     const title = input.value.trim();
 
     const parsed = TaskSchema.safeParse({ title, done: false });
@@ -167,6 +178,7 @@ const tasks = (data ?? []) as Task[];
     const target = e.target;
     if (!(target instanceof HTMLInputElement)) return;
     if (!target.matches('.am-checkbox-of-a-task')) return;
+    if (!(await ensureAuthenticated())) return;
 
     const done = target.checked;
     const labelElement = target.closest('.am-task');

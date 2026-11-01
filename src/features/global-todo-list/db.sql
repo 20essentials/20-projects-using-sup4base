@@ -3,3 +3,26 @@ CREATE TABLE project_01_tasks (
   title text,
   done boolean
 );
+
+-- Lectura pública; editar exige sesión autenticada (Google)
+ALTER TABLE project_01_tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read" ON project_01_tasks
+FOR SELECT
+USING (true);
+
+CREATE POLICY "Allow authenticated insert" ON project_01_tasks
+FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated update" ON project_01_tasks
+FOR UPDATE
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated delete" ON project_01_tasks
+FOR DELETE
+TO authenticated
+USING (true);
