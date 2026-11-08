@@ -118,7 +118,7 @@ export const Scheduler = () => {
     fetchRows();
 
     async function recoverAdmin() {
-      const saved = sessionStorage.getItem(GATE_KEY);
+      const saved = localStorage.getItem(GATE_KEY);
       if (!saved) return;
       const { data, error } = await supabase.rpc('scheduler_check_password', {
         p_pass: saved
@@ -128,7 +128,7 @@ export const Scheduler = () => {
         setAdminPassword(saved);
         setGateOpen(false);
       } else {
-        sessionStorage.removeItem(GATE_KEY);
+        localStorage.removeItem(GATE_KEY);
       }
     }
     recoverAdmin();
@@ -141,7 +141,7 @@ export const Scheduler = () => {
       p_pass: gatePassword
     });
     if (!error && data === true) {
-      sessionStorage.setItem(GATE_KEY, gatePassword);
+      localStorage.setItem(GATE_KEY, gatePassword);
       setIsAdmin(true);
       setAdminPassword(gatePassword);
       setGatePassword('');
@@ -159,7 +159,7 @@ export const Scheduler = () => {
   }
 
   function leaveAdmin() {
-    sessionStorage.removeItem(GATE_KEY);
+    localStorage.removeItem(GATE_KEY);
     setIsAdmin(false);
     setAdminPassword('');
   }

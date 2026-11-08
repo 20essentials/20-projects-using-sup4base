@@ -68,7 +68,7 @@ revoke all on function scheduler_secret() from public, anon, authenticated;
 -- 1.5) RPC: VERIFICAR PASSWORD (modo admin del cliente)
 -- =====================================================================
 -- El gate del cliente pregunta la password UNA vez al entrar: si es
--- correcta entra en modo admin y guarda la password en su sessionStorage
+-- correcta entra en modo admin y guarda la password en su localStorage
 -- para llamar a las demás RPC con ella. Devuelve true/false, nunca el
 -- password real.
 create or replace function scheduler_check_password(p_pass text)
